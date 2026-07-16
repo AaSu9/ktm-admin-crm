@@ -58,19 +58,15 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
       <div className={cn('flex items-center h-16 px-4 border-b border-white/10', collapsed ? 'justify-center' : 'justify-between')}>
         {!collapsed && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Building2 className="h-4 w-4 text-white" />
-            </div>
+            <img src="/logo.png" alt="KTM RealState" className="h-8 w-8 rounded-lg object-contain flex-shrink-0" />
             <div>
-              <p className="text-white font-bold text-sm leading-none">RealtoCRM Admin</p>
-              <p className="text-emerald-400/70 text-xs mt-0.5">app.realtocrm.com</p>
+              <p className="text-white font-bold text-sm leading-none">KTM RealState</p>
+              <p className="text-emerald-400/70 text-xs mt-0.5">Admin Panel</p>
             </div>
           </div>
         )}
         {collapsed && (
-          <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center">
-            <Building2 className="h-5 w-5 text-white" />
-          </div>
+          <img src="/logo.png" alt="KTM RealState" className="h-9 w-9 rounded-xl object-contain" />
         )}
         <button onClick={onMobileClose} className="lg:hidden text-white/60 hover:text-white">
           <X className="h-5 w-5" />

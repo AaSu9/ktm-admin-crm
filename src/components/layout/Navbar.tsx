@@ -35,7 +35,7 @@ export function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed }: Navba
         </button>
         {/* Breadcrumb */}
         <nav className="hidden sm:flex items-center gap-1.5 text-sm">
-          <span className="text-gray-400">RealtoCRM</span>
+          <span className="text-gray-400">KTM RealState</span>
           {breadcrumb.map((seg, i) => (
             <span key={i} className="flex items-center gap-1.5">
               <span className="text-gray-300">/</span>

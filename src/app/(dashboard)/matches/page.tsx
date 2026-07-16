@@ -154,7 +154,7 @@ export default async function MatchesPage() {
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-amber-500" /> Automatic Matching Hub
           </h1>
-          <p className="text-gray-500 text-sm mt-1">RealtoCRM connects active leads to available properties instantly.</p>
+          <p className="text-gray-500 text-sm mt-1">KTM RealState connects active leads to available properties instantly.</p>
         </div>
         <div className="flex items-center gap-2">
           {dbError && (

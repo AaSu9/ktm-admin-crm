@@ -52,11 +52,9 @@ export default function LoginPage() {
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-2xl shadow-lg mb-4">
-              <Building2 className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">RealtoCRM Admin</h1>
-            <p className="text-gray-500 text-sm mt-1">app.realtocrm.com</p>
+            <img src="/logo.png" alt="KTM RealState" className="h-16 w-auto mx-auto mb-4 object-contain" />
+            <h1 className="text-2xl font-bold text-gray-900">KTM RealState Admin</h1>
+            <p className="text-gray-500 text-sm mt-1">Admin Dashboard</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -68,7 +66,7 @@ export default function LoginPage() {
                 <input
                   {...register('email')}
                   type="email"
-                  placeholder="admin@realtocrm.com"
+                  placeholder="admin@ktmrealstate.com"
                   className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
                 />
               </div>
@@ -113,7 +111,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-xs text-gray-400 mt-6">
-            Authorized personnel only · RealtoCRM Admin · app.realtocrm.com
+            Authorized personnel only · KTM RealState Admin
           </p>
         </div>
       </div>

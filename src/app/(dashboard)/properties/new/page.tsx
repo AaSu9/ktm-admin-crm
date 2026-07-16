@@ -79,7 +79,7 @@ export default async function NewPropertyPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Add New Property</h1>
-          <p className="text-gray-500 text-sm">List a new property in the RealtoCRM system.</p>
+          <p className="text-gray-500 text-sm">List a new property in the KTM RealState system.</p>
         </div>
       </div>
 

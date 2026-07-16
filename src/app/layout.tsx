@@ -7,7 +7,7 @@ import { SessionProvider } from '@/components/providers/SessionProvider'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'RealtoCRM Admin — Manage Your Real Estate Business Smarter',
+  title: 'KTM RealState Admin — Manage Your Real Estate Business Smarter',
   description: 'Everything you need to manage your real estate business in one powerful platform.',
 }
 
