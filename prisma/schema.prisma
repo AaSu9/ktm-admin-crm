@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  AGENT
+  EDITOR
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  SOLD
+  PENDING
+  RENTED
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  INTERESTED
+  VISIT_SCHEDULED
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum VisitStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  REPLIED
+}
+
+model User {
+  id            String         @id @default(uuid()) @db.Uuid
+  name          String
+  email         String         @unique
+  password      String
+  role          Role           @default(AGENT)
+  avatar        String?
+  phone         String?
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  properties    Property[]     @relation("AgentProperties")
+  leads         Lead[]         @relation("AgentLeads")
+  visits        Visit[]        @relation("AgentVisits")
+  notifications Notification[]
+  deals         Deal[]         @relation("AgentDeals")
+}
+
+model Property {
+  id                 String          @id @default(uuid()) @db.Uuid
+  property_id        String          @unique
+  title              String
+  description        String?
+  location           String
+  price              Float
+  category           String          // sale | rent
+  property_type      String          // apartment | house | land | commercial
+  bedrooms           Int?
+  bathrooms          Int?
+  area_sqft          Float?
+  images             String[]
+  status             String?         @default("AVAILABLE")
+  is_featured        Boolean?        @default(false)
+  is_hot_deal        Boolean?        @default(false)
+  discount_percentage Float?         @default(0)
+  features           String[]
+  video_url          String?
+  youtube_url        String?
+  tiktok_url         String?
+  latitude           Float?
+  longitude          Float?
+  map_url            String?
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @updatedAt
+
+  // CRM Relationships (These won't affect the live Vite site, just for CRM)
+  agentId            String?         @db.Uuid
+  agent              User?           @relation("AgentProperties", fields: [agentId], references: [id])
+  views              Int             @default(0) // CRM only tracker
+  leads              Lead[]
+  visits             Visit[]
+  deals              Deal[]
+
+  @@map("properties")
+}
+
+model Lead {
+  id                String      @id @default(uuid()) @db.Uuid
+  full_name         String
+  phone             String
+  email             String
+  message           String?
+  inquiry_type      String?
+  property_interest String?
+  status            String?     @default("NEW")
+  created_at        DateTime    @default(now())
+
+  // CRM Relationships & CRM specific fields (added to existing table safely)
+  property_id       String?     @db.Uuid
+  property          Property?   @relation(fields: [property_id], references: [id])
+  
+  source            String?     @default("website") // website | referral | social | walk-in
+  priority          Priority    @default(MEDIUM)
+  notes             String[]    @default([])
+  budget            Float?
+  agentId           String?     @db.Uuid
+  agent             User?       @relation("AgentLeads", fields: [agentId], references: [id])
+  customerId        String?     @db.Uuid
+  customer          Customer?   @relation(fields: [customerId], references: [id])
+  updated_at        DateTime    @default(now()) @updatedAt
+
+  @@map("inquiries")
+}
+
+model Customer {
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String
+  phone            String
+  email            String?   @unique
+  address          String?
+  notes            String?
+  savedProperties  String[]
+  leads            Lead[]
+  visits           Visit[]
+  type             String    @default("BUYER") // BUYER | SELLER | TENANT
+  buyerDeals       Deal[]    @relation("BuyerDeals")
+  sellerDeals      Deal[]    @relation("SellerDeals")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Visit {
+  id          String      @id @default(uuid()) @db.Uuid
+  customerId  String      @db.Uuid
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  propertyId  String      @db.Uuid
+  property    Property    @relation(fields: [propertyId], references: [id])
+  agentId     String?     @db.Uuid
+  agent       User?       @relation("AgentVisits", fields: [agentId], references: [id])
+  date        DateTime
+  time        String
+  status      VisitStatus @default(SCHEDULED)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Message {
+  id          String        @id @default(uuid()) @db.Uuid
+  senderName  String
+  email       String
+  phone       String?
+  subject     String?
+  content     String
+  reply       String?
+  status      MessageStatus @default(UNREAD)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  title     String
+  message   String
+  type      String   // info | success | warning | error
+  read      Boolean  @default(false)
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Content {
+  id        String   @id @default(uuid()) @db.Uuid
+  key       String   @unique  // hero | about | testimonials | faqs | banners
+  title     String?
+  subtitle  String?
+  body      String?
+  images    String[]
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+model Deal {
+  id             String   @id @default(uuid()) @db.Uuid
+  title          String
+  propertyId     String   @db.Uuid
+  property       Property @relation(fields: [propertyId], references: [id])
+  buyerId        String?  @db.Uuid
+  buyer          Customer? @relation("BuyerDeals", fields: [buyerId], references: [id])
+  sellerId       String?  @db.Uuid
+  seller         Customer? @relation("SellerDeals", fields: [sellerId], references: [id])
+  agentId        String   @db.Uuid
+  agent          User     @relation("AgentDeals", fields: [agentId], references: [id])
+  dealValue      Float
+  commissionRate Float    // percentage, e.g. 3.0
+  commissionEarned Float  // dealValue * (commissionRate / 100)
+  status         String   // PENDING | PAID | CANCELLED
+  closingDate    DateTime
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("deals")
+}
+
+model Stat {
+  id                BigInt   @id @default(autoincrement())
+  properties_listed Int?
+  happy_clients     Int?
+  years_experience  Int?
+
+  @@map("stats")
+}
+
+model Testimonial {
+  id      BigInt  @id @default(autoincrement())
+  name    String
+  role    String?
+  comment String
+  rating  Int?
+
+  @@map("testimonials")
+}
+
+model CompanyValue {
+  id          BigInt  @id @default(autoincrement())
+  icon        String?
+  title       String
+  description String
+
+  @@map("company_values")
+}
+
+model Achievement {
+  id    BigInt  @id @default(autoincrement())
+  icon  String?
+  value String
+  label String
+
+  @@map("achievements")
+}
+
+model Contact {
+  id                 BigInt  @id @default(1)
+  address            String?
+  phone              String?
+  whatsapp           String?
+  facebook           String?
+  instagram          String?
+  youtube            String?
+  youtube_api_key    String?
+  youtube_channel_id String?
+
+  @@map("contacts")
+}
+
+model ContactDetails {
+  id              Int       @id @default(1)
+  phone           String?
+  email           String?
+  address         String?
+  map_lat         Float?
+  map_lng         Float?
+  map_zoom        Int?
+  facebook_url    String?
+  instagram_url   String?
+  youtube_url     String?
+  whatsapp_number String?
+  business_hours  Json?
+  updated_at      DateTime? @default(now())
+
+  @@map("contact_details")
+}
