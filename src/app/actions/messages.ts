@@ -5,9 +5,9 @@ import { revalidatePath } from 'next/cache'
 
 export async function markMessageRead(id: string) {
   try {
-    const message = await prisma.message.update({
+    const message = await prisma.lead.update({
       where: { id },
-      data: { status: 'READ' },
+      data: { status: 'CONTACTED' },
     })
     revalidatePath('/messages')
     return { success: true, message }
@@ -19,9 +19,12 @@ export async function markMessageRead(id: string) {
 
 export async function replyToMessage(id: string, reply: string) {
   try {
-    const message = await prisma.message.update({
+    const message = await prisma.lead.update({
       where: { id },
-      data: { reply, status: 'REPLIED' },
+      data: { 
+        status: 'CONTACTED',
+        notes: { set: [reply] } 
+      },
     })
     revalidatePath('/messages')
     return { success: true, message }
@@ -33,7 +36,7 @@ export async function replyToMessage(id: string, reply: string) {
 
 export async function deleteMessage(id: string) {
   try {
-    await prisma.message.delete({ where: { id } })
+    await prisma.lead.delete({ where: { id } })
     revalidatePath('/messages')
     return { success: true }
   } catch (error: any) {
@@ -44,9 +47,9 @@ export async function deleteMessage(id: string) {
 
 export async function bulkMarkMessagesRead(ids: string[]) {
   try {
-    await prisma.message.updateMany({
+    await prisma.lead.updateMany({
       where: { id: { in: ids } },
-      data: { status: 'READ' },
+      data: { status: 'CONTACTED' },
     })
     revalidatePath('/messages')
     return { success: true }
@@ -58,7 +61,7 @@ export async function bulkMarkMessagesRead(ids: string[]) {
 
 export async function bulkDeleteMessages(ids: string[]) {
   try {
-    await prisma.message.deleteMany({
+    await prisma.lead.deleteMany({
       where: { id: { in: ids } },
     })
     revalidatePath('/messages')

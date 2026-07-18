@@ -12,9 +12,24 @@ export default async function MessagesPage() {
   let dbError = false
 
   try {
-    messages = await prisma.message.findMany({
-      orderBy: { createdAt: 'desc' },
+    const leads = await prisma.lead.findMany({
+      orderBy: { created_at: 'desc' },
     })
+    messages = leads.map((lead) => ({
+      id: lead.id,
+      senderName: lead.full_name,
+      email: lead.email,
+      phone: lead.phone,
+      subject: lead.inquiry_type === 'contact_form' 
+        ? 'Website General Message' 
+        : `Property Inquiry: ${lead.property_interest || 'General'}`,
+      content: lead.message || 'No content provided.',
+      reply: lead.notes?.[0] || null,
+      status: lead.status === 'NEW' 
+        ? 'UNREAD' 
+        : (lead.notes && lead.notes.length > 0 ? 'REPLIED' : 'READ'),
+      createdAt: lead.created_at,
+    }))
   } catch (error) {
     console.error('DB Query failed in Messages Page:', error)
     dbError = true
