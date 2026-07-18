@@ -21,7 +21,7 @@ export async function createBlog(formData: {
       throw new Error("No users exist to assign as author")
     }
 
-    const blog = await prisma.blog.create({
+    const blog = await (prisma as any).blog.create({
       data: {
         title: formData.title,
         excerpt: formData.excerpt || null,
@@ -42,7 +42,7 @@ export async function createBlog(formData: {
 
 export async function deleteBlog(id: string) {
   try {
-    await prisma.blog.delete({
+    await (prisma as any).blog.delete({
       where: { id },
     })
     revalidatePath('/blogs')
@@ -55,7 +55,7 @@ export async function deleteBlog(id: string) {
 
 export async function toggleBlogStatus(id: string, published: boolean) {
   try {
-    const blog = await prisma.blog.update({
+    const blog = await (prisma as any).blog.update({
       where: { id },
       data: { published },
     })
@@ -68,7 +68,7 @@ export async function toggleBlogStatus(id: string, published: boolean) {
 }
 export async function getBlog(id: string) {
   try {
-    const blog = await prisma.blog.findUnique({
+    const blog = await (prisma as any).blog.findUnique({
       where: { id },
       include: { author: true },
     })
@@ -81,7 +81,7 @@ export async function getBlog(id: string) {
 
 export async function updateBlog(id: string, data: { title?: string; excerpt?: string; content?: string; imageUrl?: string; published?: boolean; isFeatured?: boolean }) {
   try {
-    const blog = await prisma.blog.update({
+    const blog = await (prisma as any).blog.update({
       where: { id },
       data,
     })

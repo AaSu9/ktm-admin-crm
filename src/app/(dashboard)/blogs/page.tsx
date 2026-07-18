@@ -25,7 +25,7 @@ export default async function BlogsPage({ searchParams: searchParamsPromise }: {
 
   let blogs: any[] = []
   try {
-    blogs = await prisma.blog.findMany({
+    blogs = await (prisma as any).blog.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: { author: true },
