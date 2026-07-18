@@ -17,6 +17,10 @@ export async function updateProfile(formData: {
     if (!userId) {
       return { success: false, error: 'User ID not found' }
     }
+    
+    if (userId === 'demo-admin-id') {
+      return { success: false, error: 'You are using an old demo session. Please log out and log back in to update your profile.' }
+    }
 
     const user = await prisma.user.update({
       where: { id: userId },
@@ -45,6 +49,10 @@ export async function changePassword(formData: {
     const userId = (session.user as any).id
     if (!userId) {
       return { success: false, error: 'User ID not found' }
+    }
+    
+    if (userId === 'demo-admin-id') {
+      return { success: false, error: 'You are using an old demo session. Please log out and log back in to change your password.' }
     }
 
     const user = await prisma.user.findUnique({
