@@ -5,7 +5,13 @@ import { createProperty } from '@/app/actions/properties'
 import Link from 'next/link'
 import { ArrowLeft, Building2 } from 'lucide-react'
 
-export default async function NewPropertyPage() {
+export default async function NewPropertyPage({
+  searchParams: searchParamsPromise,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
+  const searchParams = await searchParamsPromise
+  const errorMsg = searchParams.error
   const session = await auth()
   if (!session) redirect('/login')
 
@@ -32,6 +38,7 @@ export default async function NewPropertyPage() {
     const description = formData.get('description') as string
     const location = formData.get('location') as string
     const priceStr = formData.get('price') as string
+    const property_id = formData.get('property_id') as string
     const category = formData.get('category') as string
     const property_type = formData.get('property_type') as string
     const bedroomsStr = formData.get('bedrooms') as string
@@ -40,6 +47,11 @@ export default async function NewPropertyPage() {
     const imageUrl = formData.get('image_url') as string
     const featuresStr = formData.get('features') as string
     const video_url = formData.get('video_url') as string
+    const youtube_url = formData.get('youtube_url') as string
+    const tiktok_url = formData.get('tiktok_url') as string
+    const map_url = formData.get('map_url') as string
+    const latitudeStr = formData.get('latitude') as string
+    const longitudeStr = formData.get('longitude') as string
     const status = formData.get('status') as string
     const agentId = formData.get('agentId') as string
 
@@ -47,6 +59,7 @@ export default async function NewPropertyPage() {
     const images = imageUrl ? [imageUrl.trim()] : []
 
     const result = await createProperty({
+      property_id,
       title,
       description,
       location,
@@ -59,6 +72,11 @@ export default async function NewPropertyPage() {
       images,
       features,
       video_url,
+      youtube_url,
+      tiktok_url,
+      map_url,
+      latitude: latitudeStr ? Number(latitudeStr) : undefined,
+      longitude: longitudeStr ? Number(longitudeStr) : undefined,
       status,
       agentId: agentId === 'unassigned' ? undefined : agentId,
     })
@@ -67,6 +85,7 @@ export default async function NewPropertyPage() {
       redirect('/properties')
     } else {
       console.error(result.error)
+      redirect(`/properties/new?error=${encodeURIComponent(result.error || 'Failed to create property')}`)
     }
   }
 
@@ -83,6 +102,12 @@ export default async function NewPropertyPage() {
         </div>
       </div>
 
+      {errorMsg && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-4 text-sm">
+          ⚠️ <strong>Error:</strong> {errorMsg}
+        </div>
+      )}
+
       {dbError && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-4 text-sm">
           ⚠️ <strong>Sandbox Mode:</strong> The local database is not connected. Submitting this form will showcase the client-side flow.
@@ -93,6 +118,13 @@ export default async function NewPropertyPage() {
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
         <form action={handleCreateAction} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Property ID */}
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-semibold text-gray-700">Property ID (Compulsory & Unique)</label>
+              <input type="text" name="property_id" required placeholder="e.g. prop-101"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
+            </div>
+
             {/* Title */}
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-semibold text-gray-700">Property Title</label>
@@ -190,13 +222,6 @@ export default async function NewPropertyPage() {
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
             </div>
 
-            {/* Video URL */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700">Walkthrough Video URL (YouTube/TikTok)</label>
-              <input type="url" name="video_url" placeholder="e.g. https://youtube.com/..."
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
-            </div>
-
             {/* Assigned Agent */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Assign Agent</label>
@@ -207,6 +232,54 @@ export default async function NewPropertyPage() {
                   <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Links & Geolocation Section Header */}
+            <div className="md:col-span-2 pt-4 border-t border-gray-100">
+              <h3 className="text-md font-bold text-gray-800">Links & Geolocation</h3>
+              <p className="text-xs text-gray-400">Add marketing video walkthroughs, map embeds, and GPS coordinates.</p>
+            </div>
+
+            {/* Video Walkthrough URL */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Walkthrough Video URL (direct mp4/webm)</label>
+              <input type="url" name="video_url" placeholder="e.g. https://domain.com/video.mp4"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
+            </div>
+
+            {/* YouTube URL */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">YouTube Video URL</label>
+              <input type="url" name="youtube_url" placeholder="e.g. https://youtube.com/watch?v=..."
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
+            </div>
+
+            {/* TikTok URL */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">TikTok Video URL</label>
+              <input type="url" name="tiktok_url" placeholder="e.g. https://tiktok.com/@user/video/..."
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
+            </div>
+
+            {/* Map URL */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Google Map Location / Embed URL</label>
+              <input type="url" name="map_url" placeholder="e.g. https://google.com/maps/..."
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
+            </div>
+
+            {/* Latitude */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Latitude</label>
+              <input type="number" step="any" name="latitude" placeholder="e.g. 27.7172"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
+            </div>
+
+            {/* Longitude */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Longitude</label>
+              <input type="number" step="any" name="longitude" placeholder="e.g. 85.3240"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
             </div>
           </div>
 

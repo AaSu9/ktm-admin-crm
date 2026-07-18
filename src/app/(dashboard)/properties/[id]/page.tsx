@@ -213,6 +213,64 @@ export default async function PropertyDetailPage({ params: paramsPromise }: { pa
                   </div>
                 )}
               </div>
+
+              {/* Links & Geolocation Section */}
+              {(property.video_url || property.youtube_url || property.tiktok_url || property.map_url || property.latitude || property.longitude) && (
+                <div className="space-y-4 pt-4 border-t border-gray-100">
+                  <h3 className="font-bold text-gray-800">Links & Geolocation</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Walkthrough Video */}
+                    {property.video_url && (
+                      <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Walkthrough Video</p>
+                        <a href={property.video_url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-emerald-600 hover:text-emerald-700 break-all hover:underline">
+                          View Video File
+                        </a>
+                      </div>
+                    )}
+
+                    {/* YouTube Video */}
+                    {property.youtube_url && (
+                      <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">YouTube Walkthrough</p>
+                        <a href={property.youtube_url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-red-600 hover:text-red-700 break-all hover:underline">
+                          Watch on YouTube
+                        </a>
+                      </div>
+                    )}
+
+                    {/* TikTok Video */}
+                    {property.tiktok_url && (
+                      <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">TikTok Walkthrough</p>
+                        <a href={property.tiktok_url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-gray-800 hover:text-black break-all hover:underline">
+                          Watch on TikTok
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Google Map URL */}
+                    {property.map_url && (
+                      <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Map Location</p>
+                        <a href={property.map_url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:text-blue-700 break-all hover:underline">
+                          Open in Google Maps
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Coordinates */}
+                    {(property.latitude || property.longitude) && (
+                      <div className="p-3 bg-gray-50 rounded-xl space-y-1 sm:col-span-2">
+                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Coordinates (GPS)</p>
+                        <p className="text-sm font-bold text-gray-700">
+                          Latitude: {property.latitude || '—'} · Longitude: {property.longitude || '—'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
 export async function createProperty(formData: {
+  property_id: string
   title: string
   description?: string
   location: string
@@ -16,17 +17,26 @@ export async function createProperty(formData: {
   images?: string[]
   features?: string[]
   video_url?: string
+  youtube_url?: string
+  tiktok_url?: string
+  map_url?: string
+  latitude?: number
+  longitude?: number
   status?: string
   agentId?: string
 }) {
   try {
-    // Generate a unique short property ID like prop-1234
-    const count = await prisma.property.count()
-    const property_id = `prop-${count + 1 + Math.floor(Math.random() * 1000)}`
+    // Check if property_id already exists
+    const existing = await prisma.property.findUnique({
+      where: { property_id: formData.property_id }
+    })
+    if (existing) {
+      return { success: false, error: 'Property ID already exists. Please choose a unique Property ID.' }
+    }
 
     const property = await prisma.property.create({
       data: {
-        property_id,
+        property_id: formData.property_id,
         title: formData.title,
         description: formData.description || null,
         location: formData.location,
@@ -39,6 +49,11 @@ export async function createProperty(formData: {
         images: formData.images || [],
         features: formData.features || [],
         video_url: formData.video_url || null,
+        youtube_url: formData.youtube_url || null,
+        tiktok_url: formData.tiktok_url || null,
+        map_url: formData.map_url || null,
+        latitude: formData.latitude ? Number(formData.latitude) : null,
+        longitude: formData.longitude ? Number(formData.longitude) : null,
         status: formData.status || 'AVAILABLE',
         agentId: formData.agentId || null,
       },
@@ -54,6 +69,7 @@ export async function createProperty(formData: {
 export async function updateProperty(
   id: string,
   formData: {
+    property_id?: string
     title?: string
     description?: string
     location?: string
@@ -66,16 +82,32 @@ export async function updateProperty(
     images?: string[]
     features?: string[]
     video_url?: string
+    youtube_url?: string
+    tiktok_url?: string
+    map_url?: string
+    latitude?: number
+    longitude?: number
     status?: string
     agentId?: string
   }
 ) {
   try {
+    if (formData.property_id) {
+      const existing = await prisma.property.findUnique({
+        where: { property_id: formData.property_id }
+      })
+      if (existing && existing.id !== id) {
+        return { success: false, error: 'Property ID already exists. Please choose a unique Property ID.' }
+      }
+    }
+
     const data: any = { ...formData }
     if (formData.price !== undefined) data.price = Number(formData.price)
     if (formData.bedrooms !== undefined) data.bedrooms = formData.bedrooms ? Number(formData.bedrooms) : null
     if (formData.bathrooms !== undefined) data.bathrooms = formData.bathrooms ? Number(formData.bathrooms) : null
     if (formData.area_sqft !== undefined) data.area_sqft = formData.area_sqft ? Number(formData.area_sqft) : null
+    if (formData.latitude !== undefined) data.latitude = formData.latitude ? Number(formData.latitude) : null
+    if (formData.longitude !== undefined) data.longitude = formData.longitude ? Number(formData.longitude) : null
 
     const property = await prisma.property.update({
       where: { id },
