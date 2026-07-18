@@ -5,7 +5,7 @@ import { formatDate } from '@/lib/utils'
 import Link from 'next/link'
 import { Plus, Search, Edit, Trash2 } from 'lucide-react'
 
-export default async function BlogsPage({ searchParams: searchParamsPromise }: { searchParams: Promise<{ search?: string }> }) {
+export default async function BlogsPage({ searchParams: searchParamsPromise }: { searchParams: Promise<{ search?: string, delete?: string }> }) {
   const searchParams = await searchParamsPromise
   const session = await auth()
   if (!session) redirect('/login')
@@ -15,6 +15,12 @@ export default async function BlogsPage({ searchParams: searchParamsPromise }: {
     where.OR = [
       { title: { contains: searchParams.search, mode: 'insensitive' } },
     ]
+  }
+
+  if (searchParams.delete) {
+    const { deleteBlog } = await import('@/app/actions/blogs')
+    await deleteBlog(searchParams.delete)
+    redirect('/blogs')
   }
 
   let blogs: any[] = []
@@ -91,7 +97,14 @@ export default async function BlogsPage({ searchParams: searchParamsPromise }: {
                       {formatDate(blog.createdAt)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {/* Placeholder actions, fully implemented in a Client Component if needed */}
+                      <div className="flex items-center gap-3 justify-end">
+                       <Link href={`/blogs/new?id=${blog.id}`} className="text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                         <Edit className="h-4 w-4" /> Edit
+                       </Link>
+                       <Link href={`?delete=${blog.id}`} className="text-red-600 hover:text-red-700 flex items-center gap-1">
+                         <Trash2 className="h-4 w-4" /> Delete
+                       </Link>
+                      </div>
                     </td>
                   </tr>
                 ))

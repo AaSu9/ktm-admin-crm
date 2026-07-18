@@ -19,19 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        // Temporary fallback for UI testing without database connection
-        if (
-          (credentials.email === 'admin@ktmrealstate.com' || credentials.email === 'admin@realtocrm.com') &&
-          credentials.password === 'Admin@2059'
-        ) {
-          return {
-            id: 'demo-admin-id',
-            name: 'Super Admin',
-            email: credentials.email as string,
-            role: 'SUPER_ADMIN',
-            avatar: null,
-          }
-        }
+
 
         try {
           const user = await prisma.user.findUnique({

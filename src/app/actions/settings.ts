@@ -14,8 +14,8 @@ export async function updateProfile(formData: {
     if (!session?.user) return { success: false, error: 'Not authenticated' }
 
     const userId = (session.user as any).id
-    if (!userId || userId === 'demo-admin-id') {
-      return { success: false, error: 'Cannot update profile in demo mode' }
+    if (!userId) {
+      return { success: false, error: 'User ID not found' }
     }
 
     const user = await prisma.user.update({
@@ -43,8 +43,8 @@ export async function changePassword(formData: {
     if (!session?.user) return { success: false, error: 'Not authenticated' }
 
     const userId = (session.user as any).id
-    if (!userId || userId === 'demo-admin-id') {
-      return { success: false, error: 'Cannot change password in demo mode' }
+    if (!userId) {
+      return { success: false, error: 'User ID not found' }
     }
 
     const user = await prisma.user.findUnique({

@@ -66,3 +66,29 @@ export async function toggleBlogStatus(id: string, published: boolean) {
     return { success: false, error: error.message || 'Failed to update blog status' }
   }
 }
+export async function getBlog(id: string) {
+  try {
+    const blog = await prisma.blog.findUnique({
+      where: { id },
+      include: { author: true },
+    })
+    return { success: true, blog }
+  } catch (error: any) {
+    console.error('Failed to get blog:', error)
+    return { success: false, error: error.message || 'Failed to get blog' }
+  }
+}
+
+export async function updateBlog(id: string, data: { title?: string; excerpt?: string; content?: string; imageUrl?: string; published?: boolean; isFeatured?: boolean }) {
+  try {
+    const blog = await prisma.blog.update({
+      where: { id },
+      data,
+    })
+    revalidatePath('/blogs')
+    return { success: true, blog }
+  } catch (error: any) {
+    console.error('Failed to update blog:', error)
+    return { success: false, error: error.message || 'Failed to update blog' }
+  }
+}

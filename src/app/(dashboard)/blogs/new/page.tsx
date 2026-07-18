@@ -1,15 +1,33 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createBlog } from '@/app/actions/blogs'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createBlog, updateBlog } from '@/app/actions/blogs'
 import { ArrowLeft, Save } from 'lucide-react'
 import Link from 'next/link'
 
-export default function NewBlogPage() {
+function BlogForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const editId = searchParams.get('id')
+  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [initialData, setInitialData] = useState<any>(null)
+
+  useEffect(() => {
+    if (editId) {
+      setLoading(true)
+      fetch(`/api/blogs/${editId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) setError(data.error)
+          else setInitialData(data)
+        })
+        .catch(err => setError(err.message))
+        .finally(() => setLoading(false))
+    }
+  }, [editId])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -25,14 +43,24 @@ export default function NewBlogPage() {
       published: formData.get('published') === 'true',
     }
 
-    const result = await createBlog(data)
+    let result
+    if (editId) {
+      result = await updateBlog(editId, data)
+    } else {
+      result = await createBlog(data)
+    }
 
     if (result.success) {
       router.push('/blogs')
+      router.refresh()
     } else {
       setError(result.error || 'Something went wrong')
       setLoading(false)
     }
+  }
+
+  if (editId && loading && !initialData) {
+    return <div className="p-8 text-center text-gray-500">Loading blog data...</div>
   }
 
   return (
@@ -41,7 +69,7 @@ export default function NewBlogPage() {
         <Link href="/blogs" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
           <ArrowLeft className="h-5 w-5 text-gray-600" />
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Create New Blog</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{editId ? 'Edit Blog' : 'Create New Blog'}</h1>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -61,6 +89,7 @@ export default function NewBlogPage() {
                 type="text"
                 id="title"
                 name="title"
+                defaultValue={initialData?.title || ''}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 placeholder="Enter blog title"
@@ -74,6 +103,7 @@ export default function NewBlogPage() {
               <textarea
                 id="excerpt"
                 name="excerpt"
+                defaultValue={initialData?.excerpt || ''}
                 rows={2}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 placeholder="Brief summary of the article"
@@ -88,6 +118,7 @@ export default function NewBlogPage() {
                 type="url"
                 id="imageUrl"
                 name="imageUrl"
+                defaultValue={initialData?.imageUrl || ''}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 placeholder="https://example.com/image.jpg"
               />
@@ -100,6 +131,7 @@ export default function NewBlogPage() {
               <textarea
                 id="content"
                 name="content"
+                defaultValue={initialData?.content || ''}
                 required
                 rows={12}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -114,6 +146,7 @@ export default function NewBlogPage() {
               <select
                 id="published"
                 name="published"
+                defaultValue={initialData ? String(initialData.published) : 'true'}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="true">Published (Visible to public)</option>
@@ -139,7 +172,7 @@ export default function NewBlogPage() {
               ) : (
                 <>
                   <Save className="h-4 w-4" />
-                  Save Blog
+                  {editId ? 'Update Blog' : 'Save Blog'}
                 </>
               )}
             </button>
@@ -147,5 +180,13 @@ export default function NewBlogPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function NewBlogPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading editor...</div>}>
+      <BlogForm />
+    </Suspense>
   )
 }
