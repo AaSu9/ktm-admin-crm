@@ -124,9 +124,25 @@ export async function updateProperty(
 
 export async function deleteProperty(id: string) {
   try {
-    await prisma.property.delete({
-      where: { id },
-    })
+    await prisma.$transaction([
+      // 1. Disconnect any Leads linked to this property
+      prisma.lead.updateMany({
+        where: { property_id: id },
+        data: { property_id: null },
+      }),
+      // 2. Delete any site Visits scheduled for this property
+      prisma.visit.deleteMany({
+        where: { propertyId: id },
+      }),
+      // 3. Delete any Deals linked to this property
+      prisma.deal.deleteMany({
+        where: { propertyId: id },
+      }),
+      // 4. Finally delete the Property
+      prisma.property.delete({
+        where: { id },
+      }),
+    ])
     revalidatePath('/properties')
     return { success: true }
   } catch (error: any) {
