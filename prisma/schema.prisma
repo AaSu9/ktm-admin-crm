@@ -67,6 +67,7 @@ model User {
   visits        Visit[]        @relation("AgentVisits")
   notifications Notification[]
   deals         Deal[]         @relation("AgentDeals")
+  blogs         Blog[]         @relation("AuthorBlogs")
 }
 
 model Property {
@@ -293,4 +294,20 @@ model ContactDetails {
   updated_at      DateTime? @default(now())
 
   @@map("contact_details")
+}
+
+model Blog {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  excerpt     String?
+  content     String
+  imageUrl    String?
+  authorId    String   @db.Uuid
+  author      User     @relation("AuthorBlogs", fields: [authorId], references: [id])
+  published   Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blogs")
 }

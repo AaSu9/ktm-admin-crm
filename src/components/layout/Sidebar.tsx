@@ -14,6 +14,7 @@ import {
   MessageSquare,
   BarChart3,
   FileEdit,
+  FileText,
   Settings,
   LogOut,
   ChevronRight,
@@ -34,6 +35,7 @@ const navItems = [
   { href: '/messages', label: 'Messages', icon: MessageSquare },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/content', label: 'Content', icon: FileEdit },
+  { href: '/blogs', label: 'Blogs', icon: FileText },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
