@@ -22,6 +22,12 @@ interface Agent {
 export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
   const [agents, setAgents] = useState(initialAgents)
   const [search, setSearch] = useState('')
+  const [detailsModal, setDetailsModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    type: 'properties' | 'sold' | 'leads' | 'visits';
+    data: any[];
+  }>({ isOpen: false, title: '', type: 'properties', data: [] })
   const [showForm, setShowForm] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [formError, setFormError] = useState('')
@@ -221,20 +227,32 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                 {agent.phone && <div className="flex items-center gap-2 text-sm text-gray-600"><Phone className="h-3.5 w-3.5 text-gray-400" />{agent.phone}</div>}
               </div>
               <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100">
-                <div className="text-center">
-                  <p className="text-lg font-bold text-gray-800">{totalProperties}</p>
+                <div 
+                  className="text-center cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors group"
+                  onClick={() => setDetailsModal({ isOpen: true, title: 'Properties Assigned', type: 'properties', data: properties })}
+                >
+                  <p className="text-lg font-bold text-gray-800 group-hover:text-emerald-600 transition-colors">{totalProperties}</p>
                   <p className="text-[11px] text-gray-400">Properties</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-emerald-600">{soldProperties}</p>
+                <div 
+                  className="text-center cursor-pointer hover:bg-emerald-50 p-1.5 rounded-lg transition-colors group"
+                  onClick={() => setDetailsModal({ isOpen: true, title: 'Sold Properties', type: 'sold', data: properties.filter((p: any) => p.status === 'SOLD' || p.status === 'RENTED') })}
+                >
+                  <p className="text-lg font-bold text-emerald-600 group-hover:text-emerald-700 transition-colors">{soldProperties}</p>
                   <p className="text-[11px] text-gray-400">Sold</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-gray-800">{uniqueLeads.length}</p>
+                <div 
+                  className="text-center cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors group"
+                  onClick={() => setDetailsModal({ isOpen: true, title: 'Leads', type: 'leads', data: uniqueLeads })}
+                >
+                  <p className="text-lg font-bold text-gray-800 group-hover:text-emerald-600 transition-colors">{uniqueLeads.length}</p>
                   <p className="text-[11px] text-gray-400">Leads</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-blue-600">{completedVisits}</p>
+                <div 
+                  className="text-center cursor-pointer hover:bg-blue-50 p-1.5 rounded-lg transition-colors group"
+                  onClick={() => setDetailsModal({ isOpen: true, title: 'Visits', type: 'visits', data: uniqueVisits })}
+                >
+                  <p className="text-lg font-bold text-blue-600 group-hover:text-blue-700 transition-colors">{completedVisits}</p>
                   <p className="text-[11px] text-gray-400">Visits</p>
                 </div>
               </div>
@@ -263,6 +281,83 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
           )
         })}
       </div>
+
+      {/* Details Modal */}
+      {detailsModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <h2 className="text-lg font-bold text-gray-800">{detailsModal.title}</h2>
+              <button 
+                onClick={() => setDetailsModal({ ...detailsModal, isOpen: false })}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              {detailsModal.data.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <p>No items found.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {detailsModal.data.map((item: any, i: number) => (
+                    <div key={item.id || i} className="p-4 rounded-xl border border-gray-100 bg-white hover:border-emerald-100 hover:shadow-sm transition-all flex items-center justify-between">
+                      {(detailsModal.type === 'properties' || detailsModal.type === 'sold') && (
+                        <>
+                          <div>
+                            <p className="font-semibold text-gray-800">{item.title}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{item.location}</p>
+                          </div>
+                          <span className={cn('text-xs px-2.5 py-1 rounded-full font-medium', 
+                            item.status === 'SOLD' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                          )}>
+                            {item.status}
+                          </span>
+                        </>
+                      )}
+                      
+                      {detailsModal.type === 'leads' && (
+                        <>
+                          <div>
+                            <p className="font-semibold text-gray-800">{item.full_name}</p>
+                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                              {item.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3"/> {item.phone}</span>}
+                              {item.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3"/> {item.email}</span>}
+                            </div>
+                          </div>
+                          <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-gray-100 text-gray-700">
+                            {item.status || 'NEW'}
+                          </span>
+                        </>
+                      )}
+
+                      {detailsModal.type === 'visits' && (
+                        <>
+                          <div>
+                            <p className="font-semibold text-gray-800">{item.clientName}</p>
+                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                              {item.clientPhone && <span className="flex items-center gap-1"><Phone className="h-3 w-3"/> {item.clientPhone}</span>}
+                              <span>{new Date(item.date).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          <span className={cn('text-xs px-2.5 py-1 rounded-full font-medium', 
+                            item.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'
+                          )}>
+                            {item.status}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
