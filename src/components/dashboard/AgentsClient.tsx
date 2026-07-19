@@ -181,8 +181,25 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
             <UserCog className="h-12 w-12 mx-auto mb-2 opacity-30" /><p>{search ? 'No agents match your search' : 'No agents found'}</p>
           </div>
         ) : filtered.map((agent) => {
-          const closedLeads = agent.leads.filter((l: any) => l.status === 'CLOSED_WON').length
-          const completedVisits = agent.visits.filter((v: any) => v.status === 'COMPLETED').length
+          // Calculate aggregate stats including assigned properties
+          const directLeads = agent.leads || []
+          const directVisits = agent.visits || []
+          const properties = agent.properties || []
+          
+          const propertyLeads = properties.flatMap((p: any) => p.leads || [])
+          const propertyVisits = properties.flatMap((p: any) => p.visits || [])
+          
+          const allLeads = [...directLeads, ...propertyLeads]
+          // Deduplicate leads by id just in case a lead is both directly assigned and via property
+          const uniqueLeads = Array.from(new Map(allLeads.map((l: any) => [l.id, l])).values())
+          
+          const allVisits = [...directVisits, ...propertyVisits]
+          const uniqueVisits = Array.from(new Map(allVisits.map((v: any) => [v.id, v])).values())
+
+          const totalProperties = properties.length
+          const soldProperties = properties.filter((p: any) => p.status === 'SOLD' || p.status === 'RENTED').length
+          const completedVisits = uniqueVisits.filter((v: any) => v.status === 'COMPLETED').length
+
           return (
             <div key={agent.id} className={cn('bg-white rounded-2xl p-5 shadow-sm border transition-all', agent.isActive ? 'border-gray-100 hover:shadow-md' : 'border-red-100 opacity-60')}>
               <div className="flex items-center gap-3 mb-4">
@@ -203,29 +220,33 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                 {agent.email && <div className="flex items-center gap-2 text-sm text-gray-600"><Mail className="h-3.5 w-3.5 text-gray-400" /><span className="truncate">{agent.email}</span></div>}
                 {agent.phone && <div className="flex items-center gap-2 text-sm text-gray-600"><Phone className="h-3.5 w-3.5 text-gray-400" />{agent.phone}</div>}
               </div>
-              <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100">
+              <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100">
                 <div className="text-center">
-                  <p className="text-xl font-bold text-gray-800">{agent.leads.length}</p>
-                  <p className="text-xs text-gray-400">Leads</p>
+                  <p className="text-lg font-bold text-gray-800">{totalProperties}</p>
+                  <p className="text-[11px] text-gray-400">Properties</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xl font-bold text-emerald-600">{closedLeads}</p>
-                  <p className="text-xs text-gray-400">Closed</p>
+                  <p className="text-lg font-bold text-emerald-600">{soldProperties}</p>
+                  <p className="text-[11px] text-gray-400">Sold</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xl font-bold text-blue-600">{completedVisits}</p>
-                  <p className="text-xs text-gray-400">Visits</p>
+                  <p className="text-lg font-bold text-gray-800">{uniqueLeads.length}</p>
+                  <p className="text-[11px] text-gray-400">Leads</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold text-blue-600">{completedVisits}</p>
+                  <p className="text-[11px] text-gray-400">Visits</p>
                 </div>
               </div>
-              {agent.leads.length > 0 && (
+              {totalProperties > 0 && (
                 <div className="mt-3">
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                    <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Conversion Rate</span>
-                    <span className="font-semibold text-emerald-600">{Math.round((closedLeads / agent.leads.length) * 100)}%</span>
+                    <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Sell Rate</span>
+                    <span className="font-semibold text-emerald-600">{Math.round((soldProperties / totalProperties) * 100)}%</span>
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-500 rounded-full transition-all"
-                      style={{ width: `${Math.round((closedLeads / agent.leads.length) * 100)}%` }} />
+                      style={{ width: `${Math.round((soldProperties / totalProperties) * 100)}%` }} />
                   </div>
                 </div>
               )}

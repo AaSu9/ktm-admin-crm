@@ -15,7 +15,12 @@ export default async function AgentsPage() {
       where: { role: { in: ['AGENT', 'ADMIN', 'EDITOR'] } },
       include: {
         leads: true,
-        properties: true,
+        properties: {
+          include: {
+            leads: true,
+            visits: true,
+          }
+        },
         visits: true,
       },
       orderBy: { createdAt: 'desc' },
