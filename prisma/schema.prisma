@@ -52,22 +52,28 @@ enum MessageStatus {
 }
 
 model User {
-  id            String         @id @default(uuid()) @db.Uuid
-  name          String
-  email         String         @unique
-  password      String
-  role          Role           @default(AGENT)
-  avatar        String?
-  phone         String?
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  properties    Property[]     @relation("AgentProperties")
-  leads         Lead[]         @relation("AgentLeads")
-  visits        Visit[]        @relation("AgentVisits")
-  notifications Notification[]
-  deals         Deal[]         @relation("AgentDeals")
-  blogs         Blog[]         @relation("AuthorBlogs")
+  id             String         @id @default(uuid()) @db.Uuid
+  name           String
+  email          String         @unique
+  password       String
+  role           Role           @default(AGENT)
+  avatar         String?
+  phone          String?
+  designation    String?        @default("Real Estate Consultant")
+  bio            String?
+  facebookUrl    String?
+  instagramUrl   String?
+  whatsappNumber String?
+  showOnWebsite  Boolean        @default(true)
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  properties     Property[]     @relation("AgentProperties")
+  leads          Lead[]         @relation("AgentLeads")
+  visits         Visit[]        @relation("AgentVisits")
+  notifications  Notification[]
+  deals          Deal[]         @relation("AgentDeals")
+  blogs          Blog[]         @relation("AuthorBlogs")
 }
 
 model Property {

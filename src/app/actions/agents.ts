@@ -11,6 +11,13 @@ export async function createAgent(formData: {
   password: string
   phone?: string
   role?: 'AGENT' | 'ADMIN' | 'EDITOR'
+  avatar?: string
+  designation?: string
+  bio?: string
+  facebookUrl?: string
+  instagramUrl?: string
+  whatsappNumber?: string
+  showOnWebsite?: boolean
 }) {
   try {
     // Only ADMIN/SUPER_ADMIN can create agents
@@ -32,6 +39,13 @@ export async function createAgent(formData: {
         password: hashedPassword,
         phone: formData.phone || null,
         role: formData.role || 'AGENT',
+        avatar: formData.avatar || null,
+        designation: formData.designation || "Real Estate Consultant",
+        bio: formData.bio || null,
+        facebookUrl: formData.facebookUrl || null,
+        instagramUrl: formData.instagramUrl || null,
+        whatsappNumber: formData.whatsappNumber || null,
+        showOnWebsite: formData.showOnWebsite !== undefined ? formData.showOnWebsite : true,
         isActive: true,
       },
     })
@@ -50,14 +64,27 @@ export async function updateAgent(
   formData: {
     name?: string
     email?: string
+    password?: string
     phone?: string
     role?: 'AGENT' | 'ADMIN' | 'EDITOR'
     isActive?: boolean
+    avatar?: string
+    designation?: string
+    bio?: string
+    facebookUrl?: string
+    instagramUrl?: string
+    whatsappNumber?: string
+    showOnWebsite?: boolean
   }
 ) {
   try {
     // Only ADMIN/SUPER_ADMIN can update agents
     await requireAdmin()
+
+    let hashedPassword = undefined
+    if (formData.password) {
+      hashedPassword = await bcrypt.hash(formData.password, 12)
+    }
 
     // Whitelist only allowed fields — prevent mass assignment
     const agent = await prisma.user.update({
@@ -65,9 +92,17 @@ export async function updateAgent(
       data: {
         name: formData.name,
         email: formData.email,
+        password: hashedPassword,
         phone: formData.phone !== undefined ? formData.phone || null : undefined,
         role: formData.role,
         isActive: formData.isActive,
+        avatar: formData.avatar !== undefined ? formData.avatar || null : undefined,
+        designation: formData.designation !== undefined ? formData.designation || "Real Estate Consultant" : undefined,
+        bio: formData.bio !== undefined ? formData.bio || null : undefined,
+        facebookUrl: formData.facebookUrl !== undefined ? formData.facebookUrl || null : undefined,
+        instagramUrl: formData.instagramUrl !== undefined ? formData.instagramUrl || null : undefined,
+        whatsappNumber: formData.whatsappNumber !== undefined ? formData.whatsappNumber || null : undefined,
+        showOnWebsite: formData.showOnWebsite,
       },
     })
     revalidatePath('/agents')
