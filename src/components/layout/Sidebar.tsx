@@ -60,15 +60,15 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
       <div className={cn('flex items-center h-16 px-4 border-b border-white/10', collapsed ? 'justify-center' : 'justify-between')}>
         {!collapsed && (
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="KTM RealState" className="h-8 w-8 rounded-lg object-contain flex-shrink-0" />
+            <img src="/logo.png" alt="KTM RealEstate" className="h-8 w-8 rounded-lg object-contain flex-shrink-0" />
             <div>
-              <p className="text-white font-bold text-sm leading-none">KTM RealState</p>
+              <p className="text-white font-bold text-sm leading-none">KTM RealEstate</p>
               <p className="text-emerald-400/70 text-xs mt-0.5">Admin Panel</p>
             </div>
           </div>
         )}
         {collapsed && (
-          <img src="/logo.png" alt="KTM RealState" className="h-9 w-9 rounded-xl object-contain" />
+          <img src="/logo.png" alt="KTM RealEstate" className="h-9 w-9 rounded-xl object-contain" />
         )}
         <button onClick={onMobileClose} className="lg:hidden text-white/60 hover:text-white">
           <X className="h-5 w-5" />
@@ -106,7 +106,7 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
       </nav>
 
       {/* Logout */}
-      <div className="p-2 border-t border-white/10">
+      <div className="p-2 border-t border-white/10 flex flex-col gap-2">
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}
           className={cn(
@@ -118,6 +118,11 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
           <LogOut className="h-5 w-5 flex-shrink-0" />
           {!collapsed && <span>Logout</span>}
         </button>
+        {!collapsed && (
+          <div className="text-[10px] text-center text-white/30 pt-1 select-none font-medium">
+            AAN creator💚
+          </div>
+        )}
       </div>
     </aside>
   )

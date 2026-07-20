@@ -52,8 +52,8 @@ export default function LoginPage() {
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <img src="/logo.png" alt="KTM RealState" className="h-16 w-auto mx-auto mb-4 object-contain" />
-            <h1 className="text-2xl font-bold text-gray-900">KTM RealState Admin</h1>
+            <img src="/logo.png" alt="KTM RealEstate" className="h-16 w-auto mx-auto mb-4 object-contain" />
+            <h1 className="text-2xl font-bold text-gray-900">KTM RealEstate Admin</h1>
             <p className="text-gray-500 text-sm mt-1">Admin Dashboard</p>
           </div>
 
@@ -111,7 +111,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-xs text-gray-400 mt-6">
-            Authorized personnel only · KTM RealState Admin
+            Authorized personnel only · KTM RealEstate Admin
           </p>
         </div>
       </div>

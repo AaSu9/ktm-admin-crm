@@ -309,7 +309,7 @@ export default async function LeadDetailPage({ params: paramsPromise }: { params
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-amber-500" /> KTM RealState Smart Matcher
+                <Sparkles className="h-5 w-5 text-amber-500" /> KTM RealEstate Smart Matcher
               </h3>
               <span className="text-xs text-emerald-600 bg-emerald-50 font-semibold px-2 py-0.5 rounded-full">
                 {lead.inquiry_type ? `${lead.inquiry_type} matching` : 'Smart matching'}
