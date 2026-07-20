@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { cn, getInitials } from '@/lib/utils'
-import { Plus, UserCog, Phone, Mail, TrendingUp, Search, Download, X, Eye, EyeOff, Shield, Edit, Globe } from 'lucide-react'
+import { Plus, UserCog, Phone, Mail, TrendingUp, Search, Download, X, Eye, EyeOff, Shield, Edit, Globe, Camera } from 'lucide-react'
 import { createAgent, updateAgent, deleteAgent } from '@/app/actions/agents'
+import { uploadImage } from '@/app/actions/properties'
 import { exportToCSV } from '@/lib/csvExport'
 
 interface Agent {
@@ -40,6 +41,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
   const [editAgentId, setEditAgentId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [formError, setFormError] = useState('')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
   const initialFormState = {
     name: '',
@@ -287,10 +289,57 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="e.g. Founder & CEO, Senior Sales Executive" />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-500">Photo / Avatar URL</label>
-              <input value={formData.avatar} onChange={(e) => setFormData(p => ({ ...p, avatar: e.target.value }))}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Paste image link, e.g. https://images.unsplash.com/..." />
+            <div className="space-y-2 flex flex-col items-center justify-center border border-gray-200/60 bg-gray-50/50 rounded-2xl p-4 md:col-span-1">
+              <label className="text-xs font-semibold text-gray-500 self-start">Agent Photo</label>
+              
+              <div className="relative group w-20 h-20 rounded-full overflow-hidden border border-gray-200 bg-white shadow-xs flex items-center justify-center mt-1">
+                {formData.avatar ? (
+                  <img src={formData.avatar} alt="Agent Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="h-6 w-6 text-gray-400" />
+                )}
+                
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-[10px] font-bold animate-pulse">
+                    Uploading...
+                  </div>
+                )}
+              </div>
+
+              <input
+                type="file"
+                id="agent-avatar-upload"
+                accept="image/*"
+                className="hidden"
+                disabled={uploadingAvatar}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  setUploadingAvatar(true)
+                  try {
+                    const reader = new FileReader()
+                    reader.onload = async (event) => {
+                      if (event.target?.result) {
+                        const base64 = event.target.result as string
+                        const url = await uploadImage(base64)
+                        setFormData(p => ({ ...p, avatar: url }))
+                      }
+                      setUploadingAvatar(false)
+                    }
+                    reader.readAsDataURL(file)
+                  } catch (err) {
+                    console.error('Avatar upload failed:', err)
+                    setUploadingAvatar(false)
+                  }
+                }}
+              />
+              
+              <label
+                htmlFor="agent-avatar-upload"
+                className="cursor-pointer text-[10px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100/50 px-3 py-1.5 rounded-xl border border-emerald-100 transition-colors mt-2"
+              >
+                Upload Photo / Take Photo
+              </label>
             </div>
 
             {/* Social Links */}
