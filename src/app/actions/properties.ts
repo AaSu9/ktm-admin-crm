@@ -25,6 +25,23 @@ export async function createProperty(formData: {
   longitude?: number
   status?: string
   agentId?: string
+  pillarSize?: string
+  tankCapacity?: string
+  roadSize?: string
+  roadType?: string
+  landArea?: string
+  livingRooms?: number
+  kitchens?: number
+  faceDirection?: string
+  parking?: string
+  totalFloors?: number
+  yearBuilt?: number
+  furnishing?: string
+  negotiable?: boolean
+  cityArea?: string
+  municipality?: string
+  wardNumber?: number
+  dimension?: string
 }) {
   try {
     // Require authentication
@@ -60,6 +77,23 @@ export async function createProperty(formData: {
         longitude: formData.longitude ? Number(formData.longitude) : null,
         status: formData.status || 'AVAILABLE',
         agentId: formData.agentId || null,
+        pillarSize: formData.pillarSize || null,
+        tankCapacity: formData.tankCapacity || null,
+        roadSize: formData.roadSize || null,
+        roadType: formData.roadType || null,
+        landArea: formData.landArea || null,
+        livingRooms: formData.livingRooms ? Number(formData.livingRooms) : null,
+        kitchens: formData.kitchens ? Number(formData.kitchens) : null,
+        faceDirection: formData.faceDirection || null,
+        parking: formData.parking || null,
+        totalFloors: formData.totalFloors ? Number(formData.totalFloors) : null,
+        yearBuilt: formData.yearBuilt ? Number(formData.yearBuilt) : null,
+        furnishing: formData.furnishing || null,
+        negotiable: formData.negotiable !== undefined ? formData.negotiable : true,
+        cityArea: formData.cityArea || null,
+        municipality: formData.municipality || null,
+        wardNumber: formData.wardNumber ? Number(formData.wardNumber) : null,
+        dimension: formData.dimension || null,
       },
     })
     revalidatePath('/properties')
@@ -93,6 +127,23 @@ export async function updateProperty(
     longitude?: number
     status?: string
     agentId?: string
+    pillarSize?: string
+    tankCapacity?: string
+    roadSize?: string
+    roadType?: string
+    landArea?: string
+    livingRooms?: number
+    kitchens?: number
+    faceDirection?: string
+    parking?: string
+    totalFloors?: number
+    yearBuilt?: number
+    furnishing?: string
+    negotiable?: boolean
+    cityArea?: string
+    municipality?: string
+    wardNumber?: number
+    dimension?: string
   }
 ) {
   try {
@@ -130,6 +181,25 @@ export async function updateProperty(
     if (formData.longitude !== undefined) data.longitude = formData.longitude ? Number(formData.longitude) : null
     if (formData.status !== undefined) data.status = formData.status
     if (formData.agentId !== undefined) data.agentId = formData.agentId || null
+    
+    // Add new fields to whitelist
+    if (formData.pillarSize !== undefined) data.pillarSize = formData.pillarSize || null
+    if (formData.tankCapacity !== undefined) data.tankCapacity = formData.tankCapacity || null
+    if (formData.roadSize !== undefined) data.roadSize = formData.roadSize || null
+    if (formData.roadType !== undefined) data.roadType = formData.roadType || null
+    if (formData.landArea !== undefined) data.landArea = formData.landArea || null
+    if (formData.livingRooms !== undefined) data.livingRooms = formData.livingRooms ? Number(formData.livingRooms) : null
+    if (formData.kitchens !== undefined) data.kitchens = formData.kitchens ? Number(formData.kitchens) : null
+    if (formData.faceDirection !== undefined) data.faceDirection = formData.faceDirection || null
+    if (formData.parking !== undefined) data.parking = formData.parking || null
+    if (formData.totalFloors !== undefined) data.totalFloors = formData.totalFloors ? Number(formData.totalFloors) : null
+    if (formData.yearBuilt !== undefined) data.yearBuilt = formData.yearBuilt ? Number(formData.yearBuilt) : null
+    if (formData.furnishing !== undefined) data.furnishing = formData.furnishing || null
+    if (formData.negotiable !== undefined) data.negotiable = formData.negotiable
+    if (formData.cityArea !== undefined) data.cityArea = formData.cityArea || null
+    if (formData.municipality !== undefined) data.municipality = formData.municipality || null
+    if (formData.wardNumber !== undefined) data.wardNumber = formData.wardNumber ? Number(formData.wardNumber) : null
+    if (formData.dimension !== undefined) data.dimension = formData.dimension || null
 
     const property = await prisma.property.update({
       where: { id },

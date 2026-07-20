@@ -100,6 +100,23 @@ model Property {
   latitude           Float?
   longitude          Float?
   map_url            String?
+  pillarSize         String?
+  tankCapacity       String?
+  roadSize           String?
+  roadType           String?
+  landArea           String?
+  livingRooms        Int?
+  kitchens           Int?
+  faceDirection      String?
+  parking            String?
+  totalFloors        Float?
+  yearBuilt          Int?
+  furnishing         String?
+  negotiable         Boolean?        @default(true)
+  cityArea           String?
+  municipality       String?
+  wardNumber         Int?
+  dimension          String?
   created_at         DateTime        @default(now())
   updated_at         DateTime        @updatedAt
 
