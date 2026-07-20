@@ -271,7 +271,8 @@ model Achievement {
 }
 
 model Contact {
-  id                 BigInt  @id @default(1)
+  id                 BigInt  @id @default(autoincrement())
+  branch_name        String?
   address            String?
   phone              String?
   whatsapp           String?
