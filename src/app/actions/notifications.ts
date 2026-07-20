@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
+import { requireAuth } from '@/lib/authGuard'
 
 export async function getNotifications() {
   try {
@@ -40,7 +41,14 @@ export async function getNotifications() {
 
 export async function markNotificationRead(id: string) {
   try {
+    const { userId } = await requireAuth()
     if (id.startsWith('demo-')) return { success: true }
+
+    // Add ownership check to prevent marking others' notifications as read
+    const notification = await prisma.notification.findUnique({ where: { id } })
+    if (notification?.userId !== userId) {
+         throw new Error('Forbidden')
+    }
 
     await prisma.notification.update({
       where: { id },

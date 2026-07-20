@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { VisitStatus } from '@prisma/client'
 import { createNotification } from './notifications'
+import { requireAuth } from '@/lib/authGuard'
 
 export async function scheduleVisit(formData: {
   customerId: string
@@ -14,6 +15,7 @@ export async function scheduleVisit(formData: {
   notes?: string
 }) {
   try {
+    await requireAuth()
     const visit = await prisma.visit.create({
       data: {
         customerId: formData.customerId,
@@ -52,6 +54,7 @@ export async function updateVisitStatus(
   notes?: string
 ) {
   try {
+    await requireAuth()
     const data: any = { status }
     if (notes !== undefined) {
       data.notes = notes
@@ -72,6 +75,7 @@ export async function updateVisitStatus(
 
 export async function addVisitNotes(id: string, notes: string) {
   try {
+    await requireAuth()
     const visit = await prisma.visit.update({
       where: { id },
       data: { notes },

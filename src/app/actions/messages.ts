@@ -2,9 +2,11 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { requireAuth } from '@/lib/authGuard'
 
 export async function markMessageRead(id: string) {
   try {
+    await requireAuth()
     const message = await prisma.lead.update({
       where: { id },
       data: { status: 'CONTACTED' },
@@ -19,6 +21,7 @@ export async function markMessageRead(id: string) {
 
 export async function replyToMessage(id: string, reply: string) {
   try {
+    await requireAuth()
     // 1. Fetch the lead to get the customer's email
     const lead = await prisma.lead.findUnique({
       where: { id },
@@ -111,6 +114,7 @@ export async function replyToMessage(id: string, reply: string) {
 
 export async function deleteMessage(id: string) {
   try {
+    await requireAuth()
     await prisma.lead.delete({ where: { id } })
     revalidatePath('/messages')
     return { success: true }
@@ -122,6 +126,7 @@ export async function deleteMessage(id: string) {
 
 export async function bulkMarkMessagesRead(ids: string[]) {
   try {
+    await requireAuth()
     await prisma.lead.updateMany({
       where: { id: { in: ids } },
       data: { status: 'CONTACTED' },
@@ -136,6 +141,7 @@ export async function bulkMarkMessagesRead(ids: string[]) {
 
 export async function bulkDeleteMessages(ids: string[]) {
   try {
+    await requireAuth()
     await prisma.lead.deleteMany({
       where: { id: { in: ids } },
     })

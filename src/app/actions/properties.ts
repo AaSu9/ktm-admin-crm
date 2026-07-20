@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { requireAuth } from '@/lib/authGuard'
 
 export async function createProperty(formData: {
   property_id: string
@@ -26,6 +27,9 @@ export async function createProperty(formData: {
   agentId?: string
 }) {
   try {
+    // Require authentication
+    await requireAuth()
+
     // Check if property_id already exists
     const existing = await prisma.property.findUnique({
       where: { property_id: formData.property_id }
@@ -92,6 +96,9 @@ export async function updateProperty(
   }
 ) {
   try {
+    // Require authentication
+    await requireAuth()
+
     if (formData.property_id) {
       const existing = await prisma.property.findUnique({
         where: { property_id: formData.property_id }
@@ -101,13 +108,28 @@ export async function updateProperty(
       }
     }
 
-    const data: any = { ...formData }
+    // Whitelist allowed fields — prevents mass assignment
+    const data: any = {}
+    if (formData.property_id !== undefined) data.property_id = formData.property_id
+    if (formData.title !== undefined) data.title = formData.title
+    if (formData.description !== undefined) data.description = formData.description
+    if (formData.location !== undefined) data.location = formData.location
     if (formData.price !== undefined) data.price = Number(formData.price)
+    if (formData.category !== undefined) data.category = formData.category
+    if (formData.property_type !== undefined) data.property_type = formData.property_type
     if (formData.bedrooms !== undefined) data.bedrooms = formData.bedrooms ? Number(formData.bedrooms) : null
     if (formData.bathrooms !== undefined) data.bathrooms = formData.bathrooms ? Number(formData.bathrooms) : null
     if (formData.area_sqft !== undefined) data.area_sqft = formData.area_sqft ? Number(formData.area_sqft) : null
+    if (formData.images !== undefined) data.images = formData.images
+    if (formData.features !== undefined) data.features = formData.features
+    if (formData.video_url !== undefined) data.video_url = formData.video_url || null
+    if (formData.youtube_url !== undefined) data.youtube_url = formData.youtube_url || null
+    if (formData.tiktok_url !== undefined) data.tiktok_url = formData.tiktok_url || null
+    if (formData.map_url !== undefined) data.map_url = formData.map_url || null
     if (formData.latitude !== undefined) data.latitude = formData.latitude ? Number(formData.latitude) : null
     if (formData.longitude !== undefined) data.longitude = formData.longitude ? Number(formData.longitude) : null
+    if (formData.status !== undefined) data.status = formData.status
+    if (formData.agentId !== undefined) data.agentId = formData.agentId || null
 
     const property = await prisma.property.update({
       where: { id },
@@ -124,6 +146,9 @@ export async function updateProperty(
 
 export async function deleteProperty(id: string) {
   try {
+    // Require authentication
+    await requireAuth()
+
     await prisma.$transaction([
       // 1. Disconnect any Leads linked to this property
       prisma.lead.updateMany({

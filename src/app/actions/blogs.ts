@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { requireAuth, requireEditor } from '@/lib/authGuard'
 
 export async function createBlog(formData: {
   title: string
@@ -12,15 +13,10 @@ export async function createBlog(formData: {
   isFeatured?: boolean
 }) {
   try {
-    // Get a default author (first agent or admin)
-    const author = await prisma.user.findFirst({
-      where: { OR: [{ role: 'SUPER_ADMIN' }, { role: 'AGENT' }] },
-    })
+    // Only EDITOR/ADMIN/SUPER_ADMIN can create blogs
+    const { userId } = await requireEditor()
 
-    if (!author) {
-      throw new Error("No users exist to assign as author")
-    }
-
+    // Use the authenticated user as the author
     const blog = await (prisma as any).blog.create({
       data: {
         title: formData.title,
@@ -29,7 +25,7 @@ export async function createBlog(formData: {
         imageUrl: formData.imageUrl || null,
         published: formData.published ?? true,
         isFeatured: formData.isFeatured ?? false,
-        authorId: author.id,
+        authorId: userId,
       },
     })
     revalidatePath('/blogs')
@@ -42,6 +38,9 @@ export async function createBlog(formData: {
 
 export async function deleteBlog(id: string) {
   try {
+    // Only EDITOR/ADMIN/SUPER_ADMIN can delete blogs
+    await requireEditor()
+
     await (prisma as any).blog.delete({
       where: { id },
     })
@@ -55,6 +54,9 @@ export async function deleteBlog(id: string) {
 
 export async function toggleBlogStatus(id: string, published: boolean) {
   try {
+    // Only EDITOR/ADMIN/SUPER_ADMIN can toggle blog status
+    await requireEditor()
+
     const blog = await (prisma as any).blog.update({
       where: { id },
       data: { published },
@@ -66,8 +68,12 @@ export async function toggleBlogStatus(id: string, published: boolean) {
     return { success: false, error: error.message || 'Failed to update blog status' }
   }
 }
+
 export async function getBlog(id: string) {
   try {
+    // Require authentication to view blog in CRM
+    await requireAuth()
+
     const blog = await (prisma as any).blog.findUnique({
       where: { id },
       include: { author: true },
@@ -81,9 +87,21 @@ export async function getBlog(id: string) {
 
 export async function updateBlog(id: string, data: { title?: string; excerpt?: string; content?: string; imageUrl?: string; published?: boolean; isFeatured?: boolean }) {
   try {
+    // Only EDITOR/ADMIN/SUPER_ADMIN can update blogs
+    await requireEditor()
+
+    // Whitelist allowed fields only — prevents mass assignment of authorId etc.
+    const safeData: any = {}
+    if (data.title !== undefined) safeData.title = data.title
+    if (data.excerpt !== undefined) safeData.excerpt = data.excerpt
+    if (data.content !== undefined) safeData.content = data.content
+    if (data.imageUrl !== undefined) safeData.imageUrl = data.imageUrl
+    if (data.published !== undefined) safeData.published = data.published
+    if (data.isFeatured !== undefined) safeData.isFeatured = data.isFeatured
+
     const blog = await (prisma as any).blog.update({
       where: { id },
-      data,
+      data: safeData,
     })
     revalidatePath('/blogs')
     return { success: true, blog }

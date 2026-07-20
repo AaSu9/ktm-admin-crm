@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { createNotification, notifyAdmins } from './notifications'
+import { requireAuth } from '@/lib/authGuard'
 
 export async function createDeal(formData: {
   title: string
@@ -17,6 +18,7 @@ export async function createDeal(formData: {
   notes?: string
 }) {
   try {
+    await requireAuth()
     const dealValue = Number(formData.dealValue)
     const commissionRate = Number(formData.commissionRate)
     const commissionEarned = dealValue * (commissionRate / 100)
@@ -70,6 +72,7 @@ export async function createDeal(formData: {
 
 export async function updateDealStatus(id: string, status: string) {
   try {
+    await requireAuth()
     const deal = await prisma.deal.update({
       where: { id },
       data: { status },
@@ -98,6 +101,7 @@ export async function updateDealStatus(id: string, status: string) {
 
 export async function deleteDeal(id: string) {
   try {
+    await requireAuth()
     const deal = await prisma.deal.delete({
       where: { id },
     })

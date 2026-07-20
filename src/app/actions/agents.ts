@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import bcrypt from 'bcryptjs'
+import { requireAdmin } from '@/lib/authGuard'
 
 export async function createAgent(formData: {
   name: string
@@ -12,6 +13,9 @@ export async function createAgent(formData: {
   role?: 'AGENT' | 'ADMIN' | 'EDITOR'
 }) {
   try {
+    // Only ADMIN/SUPER_ADMIN can create agents
+    await requireAdmin()
+
     const existing = await prisma.user.findUnique({
       where: { email: formData.email },
     })
@@ -52,6 +56,10 @@ export async function updateAgent(
   }
 ) {
   try {
+    // Only ADMIN/SUPER_ADMIN can update agents
+    await requireAdmin()
+
+    // Whitelist only allowed fields — prevent mass assignment
     const agent = await prisma.user.update({
       where: { id },
       data: {
@@ -73,6 +81,9 @@ export async function updateAgent(
 
 export async function deleteAgent(id: string) {
   try {
+    // Only ADMIN/SUPER_ADMIN can deactivate agents
+    await requireAdmin()
+
     // Soft-deactivate instead of hard delete to preserve data integrity
     await prisma.user.update({
       where: { id },

@@ -61,6 +61,12 @@ export async function POST(request: Request) {
     }
 
     if (action === 'markRead' && id) {
+      // Add ownership check
+      const notification = await prisma.notification.findUnique({ where: { id } })
+      if (notification?.userId !== userId) {
+          return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
+      }
+      
       await prisma.notification.update({
         where: { id },
         data: { read: true },

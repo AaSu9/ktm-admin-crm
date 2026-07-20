@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { Priority } from '@prisma/client'
 import { createNotification, notifyAdmins } from './notifications'
+import { requireAuth } from '@/lib/authGuard'
 
 export async function createLead(formData: {
   full_name: string
@@ -17,6 +18,8 @@ export async function createLead(formData: {
   agentId?: string
 }) {
   try {
+    const { userId, role } = await requireAuth()
+
     const lead = await prisma.lead.create({
       data: {
         full_name: formData.full_name,
@@ -66,9 +69,26 @@ export async function updateLead(
   }
 ) {
   try {
-    const updatedData: any = { ...formData }
-    if (formData.budget === undefined) delete updatedData.budget
-    else updatedData.budget = formData.budget
+    const { userId, role } = await requireAuth()
+
+    if (role === 'AGENT') {
+        const existingLead = await prisma.lead.findUnique({
+            where: { id }
+        })
+        if(existingLead?.agentId !== userId) {
+             throw new Error('Forbidden: You can only update your own leads')
+        }
+    }
+
+    const updatedData: any = {}
+    if (formData.full_name !== undefined) updatedData.full_name = formData.full_name
+    if (formData.phone !== undefined) updatedData.phone = formData.phone
+    if (formData.email !== undefined) updatedData.email = formData.email
+    if (formData.source !== undefined) updatedData.source = formData.source
+    if (formData.priority !== undefined) updatedData.priority = formData.priority
+    if (formData.budget !== undefined) updatedData.budget = formData.budget
+    if (formData.status !== undefined) updatedData.status = formData.status
+    if (formData.agentId !== undefined) updatedData.agentId = formData.agentId
     
     const lead = await prisma.lead.update({
       where: { id },
@@ -85,6 +105,17 @@ export async function updateLead(
 
 export async function deleteLead(id: string) {
   try {
+    const { userId, role } = await requireAuth()
+
+    if (role === 'AGENT') {
+        const existingLead = await prisma.lead.findUnique({
+            where: { id }
+        })
+        if(existingLead?.agentId !== userId) {
+             throw new Error('Forbidden: You can only delete your own leads')
+        }
+    }
+
     await prisma.lead.delete({
       where: { id },
     })
@@ -98,12 +129,16 @@ export async function deleteLead(id: string) {
 
 export async function addLeadNote(id: string, note: string) {
   try {
+    const { userId, role } = await requireAuth()
     const lead = await prisma.lead.findUnique({
       where: { id },
-      select: { notes: true },
+      select: { notes: true, agentId: true },
     })
     
     if (!lead) throw new Error('Lead not found')
+    if (role === 'AGENT' && lead.agentId !== userId) {
+         throw new Error('Forbidden: You can only add notes to your own leads')
+    }
     
     const timestamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kathmandu' })
     const formattedNote = `[${timestamp}] ${note}`

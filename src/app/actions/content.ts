@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/authGuard'
 
 export async function getContentByKey(key: string) {
   try {
@@ -24,6 +25,7 @@ export async function updateContent(formData: {
   isActive?: boolean
 }) {
   try {
+    await requireAdmin()
     const content = await prisma.content.upsert({
       where: { key: formData.key },
       update: {

@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { requireAuth } from '@/lib/authGuard'
 
 export async function createCustomer(formData: {
   name: string
@@ -12,6 +13,7 @@ export async function createCustomer(formData: {
   type?: string
 }) {
   try {
+    await requireAuth()
     const customer = await prisma.customer.create({
       data: {
         name: formData.name,
@@ -42,6 +44,7 @@ export async function updateCustomer(
   }
 ) {
   try {
+    await requireAuth()
     const customer = await prisma.customer.update({
       where: { id },
       data: {
@@ -64,6 +67,7 @@ export async function updateCustomer(
 
 export async function deleteCustomer(id: string) {
   try {
+    await requireAuth()
     await prisma.customer.delete({
       where: { id },
     })
