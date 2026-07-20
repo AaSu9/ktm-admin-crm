@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
-import { updateProperty } from '@/app/actions/properties'
+import { updateProperty, uploadImage } from '@/app/actions/properties'
+import ImageUploadField from '@/components/dashboard/ImageUploadField'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
@@ -75,7 +76,7 @@ export default async function EditPropertyPage({
     const bedroomsStr = formData.get('bedrooms') as string
     const bathroomsStr = formData.get('bathrooms') as string
     const areaStr = formData.get('area_sqft') as string
-    const imageUrl = formData.get('image_url') as string
+    const uploadedImagesStr = formData.get('uploaded_images') as string
     const featuresStr = formData.get('features') as string
     const video_url = formData.get('video_url') as string
     const youtube_url = formData.get('youtube_url') as string
@@ -106,7 +107,18 @@ export default async function EditPropertyPage({
     const dimension = formData.get('dimension') as string
 
     const features = featuresStr ? featuresStr.split(',').map((f) => f.trim()) : []
-    const images = imageUrl ? [imageUrl.trim()] : []
+    
+    // Process and upload each base64 image
+    const base64Images = uploadedImagesStr ? JSON.parse(uploadedImagesStr) : []
+    const images: string[] = []
+    for (const base64 of base64Images) {
+      if (base64.startsWith('data:image')) {
+        const url = await uploadImage(base64)
+        images.push(url)
+      } else {
+        images.push(base64)
+      }
+    }
 
     const result = await updateProperty(property.id, {
       property_id,
@@ -441,11 +453,9 @@ export default async function EditPropertyPage({
               </select>
             </div>
 
-            {/* Image URL */}
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-semibold text-gray-700">Image URL</label>
-              <input type="url" name="image_url" defaultValue={property.images?.[0] || ''} placeholder="Paste link..."
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
+            {/* Image Upload Area */}
+            <div className="md:col-span-2">
+              <ImageUploadField defaultImages={property.images || []} />
             </div>
 
             {/* Features */}

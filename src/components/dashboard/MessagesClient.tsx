@@ -5,6 +5,7 @@ import { formatDate, getStatusColor, cn } from '@/lib/utils'
 import { Mail, MessageSquare, Search, Filter, Download, Trash2, CheckCheck, Reply, X, Send } from 'lucide-react'
 import { markMessageRead, replyToMessage, deleteMessage, bulkMarkMessagesRead, bulkDeleteMessages } from '@/app/actions/messages'
 import { exportToCSV } from '@/lib/csvExport'
+import { toast } from 'sonner'
 
 interface Message {
   id: string
@@ -79,12 +80,34 @@ export function MessagesClient({ initialMessages }: { initialMessages: Message[]
     startTransition(() => { markMessageRead(id) })
   }
 
-  const handleReply = (id: string) => {
+  const handleReply = async (id: string) => {
     if (!replyText.trim()) return
-    setMessages(prev => prev.map(m => m.id === id ? { ...m, status: 'REPLIED', reply: replyText } : m))
+    const currentReplyText = replyText
+    
+    // Save previous state in case we need to revert on failure
+    const originalMessages = [...messages]
+    
+    // Optimistic UI update
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, status: 'REPLIED', reply: currentReplyText } : m))
     setReplyingTo(null)
     setReplyText('')
-    startTransition(() => { replyToMessage(id, replyText) })
+    
+    try {
+      const res = await replyToMessage(id, currentReplyText)
+      if (res.success) {
+        if (res.warning) {
+          toast.warning(res.warning, { duration: 8000 })
+        } else {
+          toast.success('Reply saved and email sent successfully!')
+        }
+      } else {
+        toast.error(res.error || 'Failed to save reply')
+        setMessages(originalMessages)
+      }
+    } catch (err: any) {
+      toast.error('Failed to send reply. Please try again.')
+      setMessages(originalMessages)
+    }
   }
 
   const handleDelete = (id: string) => {
