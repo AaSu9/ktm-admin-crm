@@ -12,34 +12,57 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files) return
-
-    setLoading(true)
-    const newImages: string[] = []
-    let loadedCount = 0
-
-    Array.from(files).forEach((file) => {
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
       const reader = new FileReader()
       reader.onload = (event) => {
-        if (event.target?.result) {
-          newImages.push(event.target.result as string)
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
+          const maxDim = 1200
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width)
+              width = maxDim
+            } else {
+              width = Math.round((width * maxDim) / height)
+              height = maxDim
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+          const compressed = canvas.toDataURL('image/jpeg', 0.75)
+          resolve(compressed)
         }
-        loadedCount++
-        if (loadedCount === files.length) {
-          setImages((prev) => [...prev, ...newImages])
-          setLoading(false)
-        }
+        img.onerror = () => resolve((event.target?.result as string) || '')
+        img.src = (event.target?.result as string) || ''
       }
-      reader.onerror = () => {
-        loadedCount++
-        if (loadedCount === files.length) {
-          setLoading(false)
-        }
-      }
+      reader.onerror = () => resolve('')
       reader.readAsDataURL(file)
     })
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setLoading(true)
+    try {
+      const fileList = Array.from(files)
+      const compressedResults = await Promise.all(fileList.map((f) => compressImage(f)))
+      const validImages = compressedResults.filter(Boolean)
+      setImages((prev) => [...prev, ...validImages])
+    } catch (err) {
+      console.error('Failed to compress images:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const removeImage = (indexToRemove: number) => {

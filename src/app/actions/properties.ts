@@ -114,26 +114,33 @@ export async function createProperty(formData: {
       }
     }
 
+    const parseNum = (val: any) => {
+      if (val === null || val === undefined || val === '') return null
+      const cleaned = String(val).replace(/,/g, '').trim()
+      const n = Number(cleaned)
+      return isNaN(n) ? null : n
+    }
+
     const property = await prisma.property.create({
       data: {
         property_id: propId,
         title: formData.title,
         description: formData.description || null,
         location: formData.location,
-        price: Number(formData.price),
+        price: parseNum(formData.price) || 0,
         category: formData.category,
         property_type: formData.property_type,
-        bedrooms: formData.bedrooms ? Number(formData.bedrooms) : null,
-        bathrooms: formData.bathrooms ? Number(formData.bathrooms) : null,
-        area_sqft: formData.area_sqft ? Number(formData.area_sqft) : null,
+        bedrooms: parseNum(formData.bedrooms),
+        bathrooms: parseNum(formData.bathrooms),
+        area_sqft: parseNum(formData.area_sqft),
         images: formData.images || [],
         features: formData.features || [],
         video_url: formData.video_url || null,
         youtube_url: formData.youtube_url || null,
         tiktok_url: formData.tiktok_url || null,
         map_url: formData.map_url || null,
-        latitude: formData.latitude ? Number(formData.latitude) : null,
-        longitude: formData.longitude ? Number(formData.longitude) : null,
+        latitude: parseNum(formData.latitude),
+        longitude: parseNum(formData.longitude),
         status: formData.status || 'AVAILABLE',
         agentId: formData.agentId || null,
         pillarSize: formData.pillarSize || null,
@@ -141,17 +148,17 @@ export async function createProperty(formData: {
         roadSize: formData.roadSize || null,
         roadType: formData.roadType || null,
         landArea: formData.landArea || null,
-        livingRooms: formData.livingRooms ? Number(formData.livingRooms) : null,
-        kitchens: formData.kitchens ? Number(formData.kitchens) : null,
+        livingRooms: parseNum(formData.livingRooms),
+        kitchens: parseNum(formData.kitchens),
         faceDirection: formData.faceDirection || null,
         parking: formData.parking || null,
-        totalFloors: formData.totalFloors ? Number(formData.totalFloors) : null,
-        yearBuilt: formData.yearBuilt ? Number(formData.yearBuilt) : null,
+        totalFloors: parseNum(formData.totalFloors),
+        yearBuilt: parseNum(formData.yearBuilt),
         furnishing: formData.furnishing || null,
         negotiable: formData.negotiable !== undefined ? formData.negotiable : true,
         cityArea: formData.cityArea || null,
         municipality: formData.municipality || null,
-        wardNumber: formData.wardNumber ? Number(formData.wardNumber) : null,
+        wardNumber: parseNum(formData.wardNumber),
         dimension: formData.dimension || null,
       },
     })
