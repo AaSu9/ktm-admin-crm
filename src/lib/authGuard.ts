@@ -12,11 +12,11 @@ export async function requireAuth() {
   if (!session?.user) {
     throw new Error('Not authenticated')
   }
-  const user = session.user as any
+  const user = session.user as { id?: string; role?: string }
   if (!user.id) {
     throw new Error('Not authenticated')
   }
-  return { userId: user.id as string, role: (user.role as string) || 'AGENT' }
+  return { userId: user.id, role: user.role || 'AGENT' }
 }
 
 /**

@@ -1,7 +1,6 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
-import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { requireAuth } from '@/lib/authGuard'
 
@@ -10,7 +9,7 @@ export async function getNotifications() {
     const session = await auth()
     if (!session?.user) return { success: false, notifications: [], unreadCount: 0 }
 
-    const userId = (session.user as any).id
+    const userId = (session.user as { id?: string }).id
     if (!userId || userId === 'demo-admin-id') {
       // Return demo notifications for demo mode
       return {
@@ -33,7 +32,7 @@ export async function getNotifications() {
     const unreadCount = notifications.filter((n) => !n.read).length
 
     return { success: true, notifications, unreadCount }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to get notifications:', error)
     return { success: false, notifications: [], unreadCount: 0 }
   }
@@ -55,9 +54,9 @@ export async function markNotificationRead(id: string) {
       data: { read: true },
     })
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to mark notification read:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to mark notification read' }
   }
 }
 
@@ -66,7 +65,7 @@ export async function markAllNotificationsRead() {
     const session = await auth()
     if (!session?.user) return { success: false }
 
-    const userId = (session.user as any).id
+    const userId = (session.user as { id?: string }).id
     if (!userId || userId === 'demo-admin-id') return { success: true }
 
     await prisma.notification.updateMany({
@@ -74,9 +73,9 @@ export async function markAllNotificationsRead() {
       data: { read: true },
     })
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to mark all notifications read:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to mark all notifications read' }
   }
 }
 
@@ -98,9 +97,9 @@ export async function createNotification(data: {
       },
     })
     return { success: true, notification }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create notification:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to create notification' }
   }
 }
 
@@ -118,7 +117,7 @@ export async function notifyAdmins(title: string, message: string, type: 'info' 
       )
     )
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to notify admins:', error)
     return { success: false }
   }

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
-import { redirect, notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { updateProperty, uploadImage } from '@/app/actions/properties'
 import ImageUploadField from '@/components/dashboard/ImageUploadField'
 import Link from 'next/link'
@@ -20,8 +20,25 @@ export default async function EditPropertyPage({
   if (!session) redirect('/login')
 
   const propId = params.id
-  let property: any = null
-  let agents: any[] = []
+  let property: {
+    id?: string
+    title?: string
+    description?: string
+    location?: string
+    price?: number
+    category?: string
+    property_type?: string
+    bedrooms?: number
+    bathrooms?: number
+    area_sqft?: number
+    images?: string[]
+    status?: string
+    features?: string[]
+    agentId?: string
+    video_url?: string
+    [key: string]: unknown
+  } | null = null
+  let agents: Array<{ id: string; name: string }> = []
   let dbError = false
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(propId)

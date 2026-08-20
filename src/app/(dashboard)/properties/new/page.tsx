@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { createProperty, uploadImage } from '@/app/actions/properties'
 import ImageUploadField from '@/components/dashboard/ImageUploadField'
 import Link from 'next/link'
-import { ArrowLeft, Building2 } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 export default async function NewPropertyPage({
   searchParams: searchParamsPromise,
@@ -16,7 +16,7 @@ export default async function NewPropertyPage({
   const session = await auth()
   if (!session) redirect('/login')
 
-  let agents: any[] = []
+  let agents: Array<{ id: string; name: string }> = []
   let dbError = false
 
   try {

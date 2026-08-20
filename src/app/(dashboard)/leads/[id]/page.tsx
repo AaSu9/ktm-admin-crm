@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
@@ -136,7 +137,7 @@ export default async function LeadDetailPage({ params: paramsPromise }: { params
     const agentId = formData.get('agentId') as string
     const propertyId = formData.get('propertyId') as string
 
-    const data: any = {}
+    const data: Record<string, unknown> = {}
     if (status) data.status = status
     if (priority) data.priority = priority
     if (budgetStr) data.budget = Number(budgetStr)
@@ -324,10 +325,10 @@ export default async function LeadDetailPage({ params: paramsPromise }: { params
                   No properties currently match this lead&apos;s criteria.
                 </div>
               ) : (
-                matchedProperties.map((p: any) => (
+                matchedProperties.map((p) => (
                   <div key={p.id} className="border border-gray-100 rounded-2xl p-4 flex gap-3 hover:border-emerald-100 hover:shadow-sm transition-all group">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0">
-                      <img src={p.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt={p.title} className="w-full h-full object-cover" />
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0 relative">
+                      <Image src={p.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt={p.title || 'Property'} width={64} height={64} className="w-full h-full object-cover" />
                     </div>
                     <div className="min-w-0 flex-1 flex flex-col justify-between">
                       <div>

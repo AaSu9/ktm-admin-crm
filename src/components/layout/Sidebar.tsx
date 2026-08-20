@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
@@ -60,7 +61,7 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
       <div className={cn('flex items-center h-16 px-4 border-b border-white/10', collapsed ? 'justify-center' : 'justify-between')}>
         {!collapsed && (
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="KTM RealEstate" className="h-8 w-8 rounded-lg object-contain shrink-0" />
+            <Image src="/logo.png" alt="KTM RealEstate" width={32} height={32} className="h-8 w-8 rounded-lg object-contain shrink-0" />
             <div>
               <p className="text-white font-bold text-sm leading-none">KTM RealEstate</p>
               <p className="text-emerald-400/70 text-xs mt-0.5">Admin Panel</p>
@@ -68,7 +69,7 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
           </div>
         )}
         {collapsed && (
-          <img src="/logo.png" alt="KTM RealEstate" className="h-9 w-9 rounded-xl object-contain" />
+          <Image src="/logo.png" alt="KTM RealEstate" width={36} height={36} className="h-9 w-9 rounded-xl object-contain" />
         )}
         <button onClick={onMobileClose} className="lg:hidden text-white/60 hover:text-white">
           <X className="h-5 w-5" />

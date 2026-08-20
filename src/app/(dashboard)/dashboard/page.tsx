@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { formatPrice } from '@/lib/utils'
 import { Building2, Users2, TrendingUp, CalendarCheck, DollarSign, Layers } from 'lucide-react'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { RecentLeads } from '@/components/dashboard/RecentLeads'
@@ -16,7 +15,7 @@ export default async function DashboardPage() {
   if (!session) redirect('/login')
 
   let totalProperties = 0, activeListings = 0, soldProperties = 0, totalLeads = 0, scheduledVisits = 0, wonLeads = 0
-  let recentLeads: any[] = [], recentMessages: any[] = [], leadsByStatus: any[] = [], propertiesByType: any[] = []
+  let recentLeads: unknown[] = [], recentMessages: unknown[] = [], leadsByStatus: unknown[] = [], propertiesByType: unknown[] = []
 
   try {
     const results = await Promise.all([
@@ -36,7 +35,7 @@ export default async function DashboardPage() {
       totalProperties, activeListings, soldProperties, totalLeads, scheduledVisits,
       recentLeads, recentMessages, leadsByStatus, propertiesByType, wonLeads
     ] = results
-  } catch (error) {
+  } catch {
     console.error("Database not connected yet - showing empty dashboard state")
   }
 
@@ -65,14 +64,14 @@ export default async function DashboardPage() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <LeadStatusChart data={leadsByStatus} />
-        <PropertyTypeChart data={propertiesByType} />
+        <LeadStatusChart data={leadsByStatus as unknown as { status: string; _count: { status: number } }[]} />
+        <PropertyTypeChart data={propertiesByType as unknown as { property_type: string; _count: { property_type: number } }[]} />
       </div>
 
       {/* Recent Activity Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentLeads leads={recentLeads as any} />
-        <RecentMessages messages={recentMessages as any} />
+        <RecentLeads leads={recentLeads as unknown as Parameters<typeof RecentLeads>[0]['leads']} />
+        <RecentMessages messages={recentMessages as unknown as Parameters<typeof RecentMessages>[0]['messages']} />
       </div>
     </div>
   )

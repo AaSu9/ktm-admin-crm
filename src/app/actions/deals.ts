@@ -64,9 +64,9 @@ export async function createDeal(formData: {
     notifyAdmins('New Deal', `${formData.title} — NPR ${dealValue.toLocaleString()}`, 'success').catch(() => {})
     
     return { success: true, deal }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create deal:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to create deal' }
   }
 }
 
@@ -93,23 +93,23 @@ export async function updateDealStatus(id: string, status: string) {
     if (deal.sellerId) revalidatePath(`/customers/${deal.sellerId}`)
     
     return { success: true, deal }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update deal status:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update deal status' }
   }
 }
 
 export async function deleteDeal(id: string) {
   try {
     await requireAuth()
-    const deal = await prisma.deal.delete({
+    await prisma.deal.delete({
       where: { id },
     })
     revalidatePath('/deals')
     revalidatePath('/dashboard')
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete deal:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete deal' }
   }
 }

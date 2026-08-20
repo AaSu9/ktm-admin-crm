@@ -53,9 +53,9 @@ export async function createAgent(formData: {
     revalidatePath('/agents')
     revalidatePath('/dashboard')
     return { success: true, agent: { id: agent.id, name: agent.name, email: agent.email } }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create agent:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to create agent' }
   }
 }
 
@@ -108,9 +108,9 @@ export async function updateAgent(
     revalidatePath('/agents')
     revalidatePath('/dashboard')
     return { success: true, agent }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update agent:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update agent' }
   }
 }
 
@@ -127,8 +127,8 @@ export async function deleteAgent(id: string) {
     revalidatePath('/agents')
     revalidatePath('/dashboard')
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to deactivate agent:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to deactivate agent' }
   }
 }

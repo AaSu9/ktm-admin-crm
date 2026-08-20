@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useTransition } from 'react'
 import { cn, getInitials } from '@/lib/utils'
 import { Plus, UserCog, Phone, Mail, TrendingUp, Search, Download, X, Eye, EyeOff, Edit, Globe, Camera } from 'lucide-react'
@@ -15,9 +16,9 @@ interface Agent {
   role: string
   isActive: boolean
   createdAt: Date | string
-  leads: any[]
-  properties: any[]
-  visits: any[]
+  leads: Record<string, unknown>[]
+  properties: Record<string, unknown>[]
+  visits: Record<string, unknown>[]
   avatar?: string | null
   designation?: string | null
   bio?: string | null
@@ -34,7 +35,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
     isOpen: boolean;
     title: string;
     type: 'properties' | 'sold' | 'leads' | 'visits';
-    data: any[];
+    data: Record<string, unknown>[];
   }>({ isOpen: false, title: '', type: 'properties', data: [] })
   
   const [showForm, setShowForm] = useState(false)
@@ -197,9 +198,9 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
       { key: 'role', label: 'Role' },
       { key: 'isActive', label: 'Active', format: (v: boolean) => v ? 'Yes' : 'No' },
       { key: 'showOnWebsite', label: 'Show on Website', format: (v: boolean) => v ? 'Yes' : 'No' },
-      { key: 'leads', label: 'Leads', format: (v: any[]) => String(v?.length || 0) },
-      { key: 'properties', label: 'Properties', format: (v: any[]) => String(v?.length || 0) },
-      { key: 'visits', label: 'Visits', format: (v: any[]) => String(v?.length || 0) },
+      { key: 'leads', label: 'Leads', format: (v: unknown[]) => String(v?.length || 0) },
+      { key: 'properties', label: 'Properties', format: (v: unknown[]) => String(v?.length || 0) },
+      { key: 'visits', label: 'Visits', format: (v: unknown[]) => String(v?.length || 0) },
     ], 'team-export')
   }
 
@@ -294,7 +295,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
               
               <div className="relative group w-20 h-20 rounded-full overflow-hidden border border-gray-200 bg-white shadow-xs flex items-center justify-center mt-1">
                 {formData.avatar ? (
-                  <img src={formData.avatar} alt="Agent Avatar" className="w-full h-full object-cover" />
+                  <Image src={formData.avatar} alt="Agent Avatar" fill className="object-cover" />
                 ) : (
                   <Camera className="h-6 w-6 text-gray-400" />
                 )}
@@ -430,28 +431,28 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
           const directVisits = agent.visits || []
           const properties = agent.properties || []
           
-          const propertyLeads = properties.flatMap((p: any) => (p.leads as any[]) || [])
-          const propertyVisits = properties.flatMap((p: any) => (p.visits as any[]) || [])
+          const propertyLeads = properties.flatMap((p: Record<string, unknown>) => (p.leads as Record<string, unknown>[]) || [])
+          const propertyVisits = properties.flatMap((p: Record<string, unknown>) => (p.visits as Record<string, unknown>[]) || [])
           
           const allLeads = [...directLeads, ...propertyLeads]
           // Deduplicate leads by id just in case a lead is both directly assigned and via property
-          const uniqueLeads = Array.from(new Map(allLeads.map((l: any) => [l.id, l])).values())
+          const uniqueLeads = Array.from(new Map(allLeads.map((l: Record<string, unknown>) => [l.id, l])).values())
           
           const allVisits = [...directVisits, ...propertyVisits]
-          const uniqueVisits = Array.from(new Map(allVisits.map((v: any) => [v.id, v])).values())
+          const uniqueVisits = Array.from(new Map(allVisits.map((v: Record<string, unknown>) => [v.id, v])).values())
 
           const totalProperties = properties.length
-          const soldProperties = properties.filter((p: any) => p.status === 'SOLD' || p.status === 'RENTED').length
-          const completedVisits = uniqueVisits.filter((v: any) => v.status === 'COMPLETED').length
+          const soldProperties = properties.filter((p: Record<string, unknown>) => p.status === 'SOLD' || p.status === 'RENTED').length
+          const completedVisits = uniqueVisits.filter((v: Record<string, unknown>) => v.status === 'COMPLETED').length
 
           return (
             <div key={agent.id} className={cn('bg-white rounded-2xl p-5 shadow-sm border transition-all flex flex-col justify-between', agent.isActive ? 'border-gray-100 hover:shadow-md' : 'border-red-100 opacity-60')}>
               <div>
                 <div className="flex items-start gap-3 mb-4">
                   {/* Photo Display */}
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-linear-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-inner bg-muted">
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-linear-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-inner bg-muted relative">
                     {agent.avatar ? (
-                      <img src={agent.avatar} alt={agent.name} className="w-full h-full object-cover" />
+                      <Image src={agent.avatar} alt={agent.name} fill className="object-cover" />
                     ) : (
                       getInitials(agent.name)
                     )}
@@ -518,7 +519,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                   </div>
                   <div 
                     className="text-center cursor-pointer hover:bg-emerald-50 p-1.5 rounded-lg transition-colors group"
-                    onClick={() => setDetailsModal({ isOpen: true, title: 'Sold Properties', type: 'sold', data: properties.filter((p: any) => p.status === 'SOLD' || p.status === 'RENTED') })}
+                    onClick={() => setDetailsModal({ isOpen: true, title: 'Sold Properties', type: 'sold', data: properties.filter((p: Record<string, unknown>) => p.status === 'SOLD' || p.status === 'RENTED') })}
                   >
                     <p className="text-lg font-bold text-emerald-600 group-hover:text-emerald-700 transition-colors">{soldProperties}</p>
                     <p className="text-[11px] text-gray-400">Sold</p>
@@ -594,7 +595,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {detailsModal.data.map((item: any, i: number) => (
+                  {detailsModal.data.map((item: Record<string, unknown>, i: number) => (
                     <div key={item.id as string || i} className="p-4 rounded-xl border border-gray-100 bg-white hover:border-emerald-100 hover:shadow-sm transition-all flex items-center justify-between">
                       {(detailsModal.type === 'properties' || detailsModal.type === 'sold') && (
                         <>

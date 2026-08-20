@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getBlog, updateBlog, deleteBlog, createBlog } from '@/app/actions/blogs'
+import { getBlog, updateBlog, deleteBlog } from '@/app/actions/blogs'
 import { auth } from '@/lib/auth'
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -16,8 +16,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (!session?.user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
-  const role = (session.user as any).role
-  if (!['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(role)) {
+  const role = (session.user as { role?: string }).role
+  if (!role || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -35,8 +35,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   if (!session?.user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
-  const role = (session.user as any).role
-  if (!['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(role)) {
+  const role = (session.user as { role?: string }).role
+  if (!role || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

@@ -42,9 +42,9 @@ export async function scheduleVisit(formData: {
     }
 
     return { success: true, visit }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to schedule visit:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to schedule visit' }
   }
 }
 
@@ -55,7 +55,7 @@ export async function updateVisitStatus(
 ) {
   try {
     await requireAuth()
-    const data: any = { status }
+    const data: Record<string, unknown> = { status }
     if (notes !== undefined) {
       data.notes = notes
     }
@@ -67,9 +67,9 @@ export async function updateVisitStatus(
     revalidatePath(`/customers/${visit.customerId}`)
     revalidatePath(`/properties/${visit.propertyId}`)
     return { success: true, visit }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update visit status:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update visit status' }
   }
 }
 
@@ -84,8 +84,8 @@ export async function addVisitNotes(id: string, notes: string) {
     revalidatePath(`/customers/${visit.customerId}`)
     revalidatePath(`/properties/${visit.propertyId}`)
     return { success: true, visit }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to add visit notes:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to add visit notes' }
   }
 }

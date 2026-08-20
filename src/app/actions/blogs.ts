@@ -4,6 +4,15 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { requireAuth, requireEditor } from '@/lib/authGuard'
 
+const db = prisma as unknown as {
+  blog: {
+    create: (args: unknown) => Promise<unknown>
+    delete: (args: unknown) => Promise<unknown>
+    update: (args: unknown) => Promise<unknown>
+    findUnique: (args: unknown) => Promise<unknown>
+  }
+}
+
 export async function createBlog(formData: {
   title: string
   excerpt?: string
@@ -17,7 +26,7 @@ export async function createBlog(formData: {
     const { userId } = await requireEditor()
 
     // Use the authenticated user as the author
-    const blog = await (prisma as any).blog.create({
+    const blog = await db.blog.create({
       data: {
         title: formData.title,
         excerpt: formData.excerpt || null,
@@ -30,9 +39,9 @@ export async function createBlog(formData: {
     })
     revalidatePath('/blogs')
     return { success: true, blog }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create blog:', error)
-    return { success: false, error: error.message || 'Failed to create blog' }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to create blog' }
   }
 }
 
@@ -41,14 +50,14 @@ export async function deleteBlog(id: string) {
     // Only EDITOR/ADMIN/SUPER_ADMIN can delete blogs
     await requireEditor()
 
-    await (prisma as any).blog.delete({
+    await db.blog.delete({
       where: { id },
     })
     revalidatePath('/blogs')
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete blog:', error)
-    return { success: false, error: error.message || 'Failed to delete blog' }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete blog' }
   }
 }
 
@@ -57,15 +66,15 @@ export async function toggleBlogStatus(id: string, published: boolean) {
     // Only EDITOR/ADMIN/SUPER_ADMIN can toggle blog status
     await requireEditor()
 
-    const blog = await (prisma as any).blog.update({
+    const blog = await db.blog.update({
       where: { id },
       data: { published },
     })
     revalidatePath('/blogs')
     return { success: true, blog }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update blog status:', error)
-    return { success: false, error: error.message || 'Failed to update blog status' }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update blog status' }
   }
 }
 
@@ -74,14 +83,14 @@ export async function getBlog(id: string) {
     // Require authentication to view blog in CRM
     await requireAuth()
 
-    const blog = await (prisma as any).blog.findUnique({
+    const blog = await db.blog.findUnique({
       where: { id },
       include: { author: true },
     })
     return { success: true, blog }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to get blog:', error)
-    return { success: false, error: error.message || 'Failed to get blog' }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to get blog' }
   }
 }
 
@@ -91,7 +100,7 @@ export async function updateBlog(id: string, data: { title?: string; excerpt?: s
     await requireEditor()
 
     // Whitelist allowed fields only — prevents mass assignment of authorId etc.
-    const safeData: any = {}
+    const safeData: Record<string, unknown> = {}
     if (data.title !== undefined) safeData.title = data.title
     if (data.excerpt !== undefined) safeData.excerpt = data.excerpt
     if (data.content !== undefined) safeData.content = data.content
@@ -99,14 +108,14 @@ export async function updateBlog(id: string, data: { title?: string; excerpt?: s
     if (data.published !== undefined) safeData.published = data.published
     if (data.isFeatured !== undefined) safeData.isFeatured = data.isFeatured
 
-    const blog = await (prisma as any).blog.update({
+    const blog = await db.blog.update({
       where: { id },
       data: safeData,
     })
     revalidatePath('/blogs')
     return { success: true, blog }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update blog:', error)
-    return { success: false, error: error.message || 'Failed to update blog' }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update blog' }
   }
 }

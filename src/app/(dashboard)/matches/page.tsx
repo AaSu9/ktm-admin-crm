@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
@@ -250,8 +251,8 @@ export default async function MatchesPage() {
 
                 {/* Property Card */}
                 <div className="flex-1 bg-gray-50/50 rounded-2xl p-4 border border-gray-100 w-full flex gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0">
-                    <img src={m.property.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt={m.property.title} className="w-full h-full object-cover" />
+                  <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 relative">
+                    <Image src={m.property.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt={m.property.title || 'Property'} width={48} height={48} className="w-full h-full object-cover" />
                   </div>
                   <div className="min-w-0 flex-1 flex flex-col justify-between">
                     <div>

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -7,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Lock, Mail, Eye, EyeOff, Building2 } from 'lucide-react'
+import { Lock, Mail, Eye, EyeOff } from 'lucide-react'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -52,7 +53,7 @@ export default function LoginPage() {
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <img src="/logo.png" alt="KTM RealEstate" className="h-16 w-auto mx-auto mb-4 object-contain" />
+            <Image src="/logo.png" alt="KTM RealEstate" width={64} height={64} className="h-16 w-auto mx-auto mb-4 object-contain" priority />
             <h1 className="text-2xl font-bold text-gray-900">KTM RealEstate Admin</h1>
             <p className="text-gray-500 text-sm mt-1">Admin Dashboard</p>
           </div>

@@ -18,7 +18,7 @@ export async function createLead(formData: {
   agentId?: string
 }) {
   try {
-    const { userId, role } = await requireAuth()
+    await requireAuth()
 
     const lead = await prisma.lead.create({
       data: {
@@ -49,9 +49,9 @@ export async function createLead(formData: {
     notifyAdmins('New Lead', `${formData.full_name} submitted via ${formData.source || 'website'}`, 'info').catch(() => {})
 
     return { success: true, lead }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create lead:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to create lead' }
   }
 }
 
@@ -80,7 +80,7 @@ export async function updateLead(
         }
     }
 
-    const updatedData: any = {}
+    const updatedData: Record<string, unknown> = {}
     if (formData.full_name !== undefined) updatedData.full_name = formData.full_name
     if (formData.phone !== undefined) updatedData.phone = formData.phone
     if (formData.email !== undefined) updatedData.email = formData.email
@@ -97,9 +97,9 @@ export async function updateLead(
     revalidatePath('/leads')
     revalidatePath(`/leads/${id}`)
     return { success: true, lead }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update lead:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update lead' }
   }
 }
 
@@ -121,9 +121,9 @@ export async function deleteLead(id: string) {
     })
     revalidatePath('/leads')
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete lead:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete lead' }
   }
 }
 
@@ -153,8 +153,8 @@ export async function addLeadNote(id: string, note: string) {
     })
     revalidatePath(`/leads/${id}`)
     return { success: true, lead: updatedLead }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to add note:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to add note' }
   }
 }

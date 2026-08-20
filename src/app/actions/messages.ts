@@ -13,9 +13,9 @@ export async function markMessageRead(id: string) {
     })
     revalidatePath('/messages')
     return { success: true, message }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to mark message as read:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to mark message as read' }
   }
 }
 
@@ -72,15 +72,15 @@ export async function replyToMessage(id: string, reply: string) {
     const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env
     if (SMTP_HOST && SMTP_USER && SMTP_PASS && lead.email) {
       try {
-        let nodemailer: any = null
+        let nodemailerModule = null
         try {
-          nodemailer = require('nodemailer')
+          nodemailerModule = await import('nodemailer')
         } catch {
           console.warn('Nodemailer package not installed. Run: npm install nodemailer @types/nodemailer')
         }
 
-        if (nodemailer) {
-          const transporter = nodemailer.createTransport({
+        if (nodemailerModule) {
+          const transporter = nodemailerModule.createTransport({
             host: SMTP_HOST,
             port: Number(SMTP_PORT || 465),
             secure: Number(SMTP_PORT || 465) === 465, // true for 465, false for 587
@@ -149,9 +149,9 @@ export async function replyToMessage(id: string, reply: string) {
       emailSent,
       warning: !emailSent ? 'Reply saved in admin CRM, but email configuration (SMTP or Resend) is missing in .env.' : undefined
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to reply to message:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to reply to message' }
   }
 }
 
@@ -161,9 +161,9 @@ export async function deleteMessage(id: string) {
     await prisma.lead.delete({ where: { id } })
     revalidatePath('/messages')
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete message:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete message' }
   }
 }
 
@@ -176,9 +176,9 @@ export async function bulkMarkMessagesRead(ids: string[]) {
     })
     revalidatePath('/messages')
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to bulk mark messages:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to bulk mark messages' }
   }
 }
 
@@ -190,8 +190,8 @@ export async function bulkDeleteMessages(ids: string[]) {
     })
     revalidatePath('/messages')
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to bulk delete messages:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to bulk delete messages' }
   }
 }

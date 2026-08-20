@@ -26,9 +26,9 @@ export async function createCustomer(formData: {
     })
     revalidatePath('/customers')
     return { success: true, customer }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create customer:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to create customer' }
   }
 }
 
@@ -59,9 +59,9 @@ export async function updateCustomer(
     revalidatePath('/customers')
     revalidatePath(`/customers/${id}`)
     return { success: true, customer }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update customer:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update customer' }
   }
 }
 
@@ -73,8 +73,8 @@ export async function deleteCustomer(id: string) {
     })
     revalidatePath('/customers')
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete customer:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete customer' }
   }
 }

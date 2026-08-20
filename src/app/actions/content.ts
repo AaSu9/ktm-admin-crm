@@ -10,9 +10,9 @@ export async function getContentByKey(key: string) {
       where: { key },
     })
     return { success: true, content }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to get content:', error)
-    return { success: false, error: error.message, content: null }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to get content', content: null }
   }
 }
 
@@ -47,8 +47,8 @@ export async function updateContent(formData: {
     revalidatePath('/content')
     revalidatePath(`/content/${formData.key}`)
     return { success: true, content }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update content:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update content' }
   }
 }

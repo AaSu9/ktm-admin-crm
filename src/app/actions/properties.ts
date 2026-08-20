@@ -164,9 +164,9 @@ export async function createProperty(formData: {
     })
     revalidatePath('/properties')
     return { success: true, property }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create property:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to create property' }
   }
 }
 
@@ -237,7 +237,7 @@ export async function updateProperty(
     }
 
     // Whitelist allowed fields — prevents mass assignment
-    const data: any = {}
+    const data: Record<string, unknown> = {}
     if (formData.property_id !== undefined) data.property_id = formData.property_id
     if (formData.title !== undefined) data.title = formData.title
     if (formData.description !== undefined) data.description = formData.description
@@ -278,11 +278,11 @@ export async function updateProperty(
     if (formData.wardNumber !== undefined) data.wardNumber = formData.wardNumber ? Number(formData.wardNumber) : null
     if (formData.dimension !== undefined) data.dimension = formData.dimension || null
 
-    let property: any = null
+    let property: Record<string, unknown> | null = null
     try {
       const whereCondition = isUuid ? { id } : { property_id: id }
       property = await prisma.property.update({
-        where: whereCondition as any,
+        where: whereCondition as { id: string },
         data,
       })
     } catch (err) {

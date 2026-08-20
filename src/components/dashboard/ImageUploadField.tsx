@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useRef } from 'react'
 import { Camera, UploadCloud, X, Image as ImageIcon } from 'lucide-react'
 
@@ -16,7 +17,7 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
     return new Promise((resolve) => {
       const reader = new FileReader()
       reader.onload = (event) => {
-        const img = new Image()
+        const img = new window.Image()
         img.onload = () => {
           const canvas = document.createElement('canvas')
           let width = img.width
@@ -124,10 +125,11 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
           {images.map((img, idx) => (
             <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden border border-gray-100 shadow-xs bg-gray-50">
-              <img
+              <Image
                 src={img}
                 alt={`preview-${idx}`}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
               <button
                 type="button"
