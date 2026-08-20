@@ -20,8 +20,8 @@ export default async function EditPropertyPage({
   if (!session) redirect('/login')
 
   const propId = params.id
-  let property: any = null
-  let agents: any[] = []
+  let property: Record<string, unknown> | null = null
+  let agents: Array<Record<string, unknown>> = []
   let dbError = false
 
   try {
@@ -78,10 +78,14 @@ export default async function EditPropertyPage({
     const areaStr = formData.get('area_sqft') as string
     const uploadedImagesStr = formData.get('uploaded_images') as string
     const featuresStr = formData.get('features') as string
-    const video_url = formData.get('video_url') as string
-    const youtube_url = formData.get('youtube_url') as string
-    const tiktok_url = formData.get('tiktok_url') as string
-    const map_url = formData.get('map_url') as string
+    const video_url = (formData.get('video_url') as string) || ''
+    const youtube_url = (formData.get('youtube_url') as string) || ''
+    const tiktok_url = (formData.get('tiktok_url') as string) || ''
+    let map_url = (formData.get('map_url') as string) || ''
+    if (map_url.includes('<iframe')) {
+      const match = map_url.match(/src="([^"]+)"/)
+      if (match && match[1]) map_url = match[1]
+    }
     const latitudeStr = formData.get('latitude') as string
     const longitudeStr = formData.get('longitude') as string
     const status = formData.get('status') as string
@@ -195,7 +199,7 @@ export default async function EditPropertyPage({
 
       {/* Form Card */}
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-        <form action={handleUpdateAction} className="space-y-6">
+        <form action={handleUpdateAction} noValidate className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {/* SECTION 1: Core Details */}
@@ -468,28 +472,28 @@ export default async function EditPropertyPage({
             {/* Video Walkthrough URL */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Walkthrough Video URL (direct mp4/webm)</label>
-              <input type="url" name="video_url" defaultValue={property.video_url || ''} placeholder="e.g. https://domain.com/video.mp4"
+              <input type="text" name="video_url" defaultValue={property.video_url || ''} placeholder="e.g. https://domain.com/video.mp4"
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
             </div>
 
             {/* YouTube URL */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">YouTube Video URL</label>
-              <input type="url" name="youtube_url" defaultValue={property.youtube_url || ''} placeholder="e.g. https://youtube.com/watch?v=..."
+              <input type="text" name="youtube_url" defaultValue={property.youtube_url || ''} placeholder="e.g. https://youtube.com/watch?v=..."
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
             </div>
 
             {/* TikTok URL */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">TikTok Video URL</label>
-              <input type="url" name="tiktok_url" defaultValue={property.tiktok_url || ''} placeholder="e.g. https://tiktok.com/@user/video/..."
+              <input type="text" name="tiktok_url" defaultValue={property.tiktok_url || ''} placeholder="e.g. https://tiktok.com/@user/video/..."
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
             </div>
 
             {/* Map URL */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Google Map Location / Embed URL</label>
-              <input type="url" name="map_url" defaultValue={property.map_url || ''} placeholder="e.g. https://google.com/maps/..."
+              <input type="text" name="map_url" defaultValue={property.map_url || ''} placeholder="e.g. https://google.com/maps/... or https://maps.app.goo.gl/..."
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
             </div>
 
