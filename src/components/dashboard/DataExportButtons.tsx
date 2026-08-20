@@ -3,7 +3,7 @@
 import { ExportButton } from '@/components/dashboard/ExportButton'
 import { formatPrice, formatDate } from '@/lib/utils'
 
-export function LeadsExportButton({ leads }: { leads: any[] }) {
+export function LeadsExportButton({ leads }: { leads: Record<string, unknown>[] }) {
   return (
     <ExportButton
       data={leads}
@@ -11,20 +11,20 @@ export function LeadsExportButton({ leads }: { leads: any[] }) {
         { key: 'full_name', label: 'Name' },
         { key: 'phone', label: 'Phone' },
         { key: 'email', label: 'Email' },
-        { key: 'status', label: 'Status', format: (v: string) => (v || 'NEW').replace(/_/g, ' ') },
+        { key: 'status', label: 'Status', format: (v: unknown) => String(v || 'NEW').replace(/_/g, ' ') },
         { key: 'priority', label: 'Priority' },
         { key: 'source', label: 'Source' },
-        { key: 'budget', label: 'Budget', format: (v: number) => v ? formatPrice(v) : 'N/A' },
+        { key: 'budget', label: 'Budget', format: (v: unknown) => typeof v === 'number' && v ? formatPrice(v) : 'N/A' },
         { key: 'property.title', label: 'Property Interest' },
         { key: 'agent.name', label: 'Assigned Agent' },
-        { key: 'created_at', label: 'Created', format: (v: any) => v ? formatDate(v) : '' },
+        { key: 'created_at', label: 'Created', format: (v: unknown) => v ? formatDate(v as string | Date) : '' },
       ]}
       filename="leads-export"
     />
   )
 }
 
-export function PropertiesExportButton({ properties }: { properties: any[] }) {
+export function PropertiesExportButton({ properties }: { properties: Record<string, unknown>[] }) {
   return (
     <ExportButton
       data={properties}
@@ -32,7 +32,7 @@ export function PropertiesExportButton({ properties }: { properties: any[] }) {
         { key: 'property_id', label: 'Property ID' },
         { key: 'title', label: 'Title' },
         { key: 'location', label: 'Location' },
-        { key: 'price', label: 'Price', format: (v: number) => formatPrice(v) },
+        { key: 'price', label: 'Price', format: (v: unknown) => typeof v === 'number' ? formatPrice(v) : '0' },
         { key: 'category', label: 'Category' },
         { key: 'property_type', label: 'Type' },
         { key: 'status', label: 'Status' },
@@ -40,14 +40,14 @@ export function PropertiesExportButton({ properties }: { properties: any[] }) {
         { key: 'bathrooms', label: 'Bathrooms' },
         { key: 'area_sqft', label: 'Area (sqft)' },
         { key: 'agent.name', label: 'Agent' },
-        { key: 'created_at', label: 'Listed', format: (v: any) => v ? formatDate(v) : '' },
+        { key: 'created_at', label: 'Listed', format: (v: unknown) => v ? formatDate(v as string | Date) : '' },
       ]}
       filename="properties-export"
     />
   )
 }
 
-export function CustomersExportButton({ customers }: { customers: any[] }) {
+export function CustomersExportButton({ customers }: { customers: Record<string, unknown>[] }) {
   return (
     <ExportButton
       data={customers}
@@ -57,16 +57,16 @@ export function CustomersExportButton({ customers }: { customers: any[] }) {
         { key: 'email', label: 'Email' },
         { key: 'address', label: 'Address' },
         { key: 'type', label: 'Type' },
-        { key: 'leads', label: 'Leads', format: (v: any[]) => String(v?.length || 0) },
-        { key: 'visits', label: 'Visits', format: (v: any[]) => String(v?.length || 0) },
-        { key: 'createdAt', label: 'Joined', format: (v: any) => v ? formatDate(v) : '' },
+        { key: 'leads', label: 'Leads', format: (v: unknown) => String(Array.isArray(v) ? v.length : 0) },
+        { key: 'visits', label: 'Visits', format: (v: unknown) => String(Array.isArray(v) ? v.length : 0) },
+        { key: 'createdAt', label: 'Joined', format: (v: unknown) => v ? formatDate(v as string | Date) : '' },
       ]}
       filename="customers-export"
     />
   )
 }
 
-export function VisitsExportButton({ visits }: { visits: any[] }) {
+export function VisitsExportButton({ visits }: { visits: Record<string, unknown>[] }) {
   return (
     <ExportButton
       data={visits}
@@ -74,7 +74,7 @@ export function VisitsExportButton({ visits }: { visits: any[] }) {
         { key: 'customer.name', label: 'Customer' },
         { key: 'customer.phone', label: 'Phone' },
         { key: 'property.title', label: 'Property' },
-        { key: 'date', label: 'Date', format: (v: any) => v ? formatDate(v) : '' },
+        { key: 'date', label: 'Date', format: (v: unknown) => v ? formatDate(v as string | Date) : '' },
         { key: 'time', label: 'Time' },
         { key: 'status', label: 'Status' },
         { key: 'agent.name', label: 'Agent' },
@@ -85,7 +85,7 @@ export function VisitsExportButton({ visits }: { visits: any[] }) {
   )
 }
 
-export function DealsExportButton({ deals }: { deals: any[] }) {
+export function DealsExportButton({ deals }: { deals: Record<string, unknown>[] }) {
   return (
     <ExportButton
       data={deals}
@@ -95,14 +95,15 @@ export function DealsExportButton({ deals }: { deals: any[] }) {
         { key: 'agent.name', label: 'Agent' },
         { key: 'buyer.name', label: 'Buyer' },
         { key: 'seller.name', label: 'Seller' },
-        { key: 'dealValue', label: 'Deal Value', format: (v: number) => formatPrice(v) },
+        { key: 'dealValue', label: 'Deal Value', format: (v: unknown) => typeof v === 'number' ? formatPrice(v) : '' },
         { key: 'commissionRate', label: 'Commission Rate (%)' },
-        { key: 'commissionEarned', label: 'Commission Earned', format: (v: number) => formatPrice(v) },
+        { key: 'commissionEarned', label: 'Commission Earned', format: (v: unknown) => typeof v === 'number' ? formatPrice(v) : '' },
         { key: 'status', label: 'Status' },
-        { key: 'closingDate', label: 'Closing Date', format: (v: any) => v ? formatDate(v) : '' },
+        { key: 'closingDate', label: 'Closing Date', format: (v: unknown) => v ? formatDate(v as string | Date) : '' },
         { key: 'notes', label: 'Notes' },
       ]}
       filename="deals-export"
     />
   )
 }
+

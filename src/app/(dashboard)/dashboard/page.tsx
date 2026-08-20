@@ -9,6 +9,8 @@ import { RecentMessages } from '@/components/dashboard/RecentMessages'
 import { LeadStatusChart } from '@/components/dashboard/LeadStatusChart'
 import { PropertyTypeChart } from '@/components/dashboard/PropertyTypeChart'
 
+export const revalidate = 60
+
 export default async function DashboardPage() {
   const session = await auth()
   if (!session) redirect('/login')
@@ -27,14 +29,13 @@ export default async function DashboardPage() {
       prisma.message.findMany({ take: 5, orderBy: { createdAt: 'desc' } }),
       prisma.lead.groupBy({ by: ['status'], _count: { status: true } }),
       prisma.property.groupBy({ by: ['property_type'], _count: { property_type: true } }),
+      prisma.lead.count({ where: { status: 'CLOSED_WON' } }),
     ])
 
     ;[
       totalProperties, activeListings, soldProperties, totalLeads, scheduledVisits,
-      recentLeads, recentMessages, leadsByStatus, propertiesByType
+      recentLeads, recentMessages, leadsByStatus, propertiesByType, wonLeads
     ] = results
-
-    wonLeads = await prisma.lead.count({ where: { status: 'CLOSED_WON' } })
   } catch (error) {
     console.error("Database not connected yet - showing empty dashboard state")
   }

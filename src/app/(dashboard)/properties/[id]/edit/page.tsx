@@ -165,7 +165,7 @@ export default async function EditPropertyPage({
     })
 
     if (result.success) {
-      redirect('/properties')
+      redirect('/properties?updated=true')
     } else {
       console.error(result.error)
       redirect(`/properties/${property.id}/edit?error=${encodeURIComponent(result.error || 'Failed to update property')}`)

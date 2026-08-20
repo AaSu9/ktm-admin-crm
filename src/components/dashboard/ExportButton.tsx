@@ -10,7 +10,7 @@ interface ExportButtonProps<T> {
   label?: string
 }
 
-export function ExportButton<T extends Record<string, any>>({
+export function ExportButton<T extends Record<string, unknown>>({
   data, columns, filename, label = 'Export CSV'
 }: ExportButtonProps<T>) {
   return (

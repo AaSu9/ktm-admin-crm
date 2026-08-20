@@ -8,10 +8,12 @@ import { deleteProperty } from '@/app/actions/properties'
 import { PropertiesExportButton } from '@/components/dashboard/DataExportButtons'
 import DeleteForm from '@/components/DeleteForm'
 
+export const revalidate = 30
+
 export default async function PropertiesPage({
   searchParams: searchParamsPromise,
 }: {
-  searchParams: Promise<{ page?: string; search?: string; status?: string; category?: string }>
+  searchParams: Promise<{ page?: string; search?: string; status?: string; category?: string; added?: string; updated?: string }>
 }) {
   const searchParams = await searchParamsPromise
   const session = await auth()
@@ -26,7 +28,7 @@ export default async function PropertiesPage({
   const limit = 10
   const skip = (page - 1) * limit
 
-  const where: any = {}
+  const where: Record<string, unknown> = {}
   if (searchParams.search) {
     where.OR = [
       { title: { contains: searchParams.search, mode: 'insensitive' } },
@@ -36,7 +38,7 @@ export default async function PropertiesPage({
   if (searchParams.status) where.status = searchParams.status
   if (searchParams.category) where.category = searchParams.category
 
-  let properties: any[] = []
+  let properties: Record<string, unknown>[] = []
   let total = 0
 
   try {
@@ -44,16 +46,34 @@ export default async function PropertiesPage({
       prisma.property.findMany({ where, skip, take: limit, orderBy: { created_at: 'desc' }, include: { agent: true } }),
       prisma.property.count({ where }),
     ])
-    properties = results[0]
+    properties = results[0] as unknown as Record<string, unknown>[]
     total = results[1]
   } catch (error) {
-    console.error("DB not connected")
+    console.error("DB not connected", error)
   }
 
   const totalPages = Math.ceil(total / limit)
 
   return (
     <div className="space-y-6">
+      {searchParams.added && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-sm flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-base">🎉</span>
+            <span><strong>Success:</strong> Property added successfully!</span>
+          </div>
+        </div>
+      )}
+
+      {searchParams.updated && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-2xl p-4 text-sm flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-base">✅</span>
+            <span><strong>Success:</strong> Property updated successfully!</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -72,7 +92,7 @@ export default async function PropertiesPage({
       {/* Filters */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-wrap gap-3">
         <form className="flex flex-wrap gap-3 w-full">
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-50">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input name="search" defaultValue={searchParams.search} placeholder="Search properties..."
               className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50" />
@@ -121,53 +141,57 @@ export default async function PropertiesPage({
                   </td>
                 </tr>
               ) : (
-                properties.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-                          {p.images?.[0] ? (
-                            <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-300">
-                              <Building2 className="h-5 w-5" />
-                            </div>
-                          )}
+                properties.map((p) => {
+                  const prop = p as { id: string; title: string; location: string; price: number; status: string; property_type: string; category: string; images?: string[]; agent?: { name?: string }; created_at: string | Date }
+                  return (
+                    <tr key={prop.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                            {prop.images?.[0] ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img src={prop.images[0]} alt={prop.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <Building2 className="h-5 w-5" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-800 truncate max-w-40">{prop.title}</p>
+                            <p className="text-xs text-gray-400 capitalize">{prop.property_type} · {prop.category}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-gray-800 truncate max-w-[160px]">{p.title}</p>
-                          <p className="text-xs text-gray-400 capitalize">{p.property_type} · {p.category}</p>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 hidden md:table-cell max-w-35 truncate">{prop.location}</td>
+                      <td className="px-4 py-3 font-semibold text-gray-800">{formatPrice(prop.price)}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        <span className={cn('px-2.5 py-1 rounded-full text-xs font-medium', getStatusColor(prop.status))}>
+                          {prop.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">{prop.agent?.name || '—'}</td>
+                      <td className="px-4 py-3 text-gray-400 text-xs hidden xl:table-cell">{formatDate(prop.created_at)}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <Link href={`/properties/${prop.id}`}
+                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors">
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                          <Link href={`/properties/${prop.id}/edit`}
+                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-emerald-600 transition-colors">
+                            <Pencil className="h-4 w-4" />
+                          </Link>
+                          <DeleteForm action={handleDeleteProperty.bind(null, prop.id)} confirmMessage="Delete this property permanently?" className="inline">
+                            <button type="submit" className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-600 transition-colors" title="Delete Property">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </DeleteForm>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 hidden md:table-cell max-w-[140px] truncate">{p.location}</td>
-                    <td className="px-4 py-3 font-semibold text-gray-800">{formatPrice(p.price)}</td>
-                    <td className="px-4 py-3 hidden sm:table-cell">
-                      <span className={cn('px-2.5 py-1 rounded-full text-xs font-medium', getStatusColor(p.status))}>
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">{p.agent?.name || '—'}</td>
-                    <td className="px-4 py-3 text-gray-400 text-xs hidden xl:table-cell">{formatDate(p.created_at)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link href={`/properties/${p.id}`}
-                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors">
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                        <Link href={`/properties/${p.id}/edit`}
-                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-emerald-600 transition-colors">
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                        <DeleteForm action={handleDeleteProperty.bind(null, p.id)} confirmMessage="Delete this property permanently?" className="inline">
-                          <button type="submit" className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-600 transition-colors" title="Delete Property">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </DeleteForm>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>
@@ -192,3 +216,4 @@ export default async function PropertiesPage({
     </div>
   )
 }
+
