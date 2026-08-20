@@ -60,7 +60,7 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
       <div className={cn('flex items-center h-16 px-4 border-b border-white/10', collapsed ? 'justify-center' : 'justify-between')}>
         {!collapsed && (
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="KTM RealEstate" className="h-8 w-8 rounded-lg object-contain flex-shrink-0" />
+            <img src="/logo.png" alt="KTM RealEstate" className="h-8 w-8 rounded-lg object-contain shrink-0" />
             <div>
               <p className="text-white font-bold text-sm leading-none">KTM RealEstate</p>
               <p className="text-emerald-400/70 text-xs mt-0.5">Admin Panel</p>
@@ -93,11 +93,11 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
               )}
               title={collapsed ? item.label : undefined}
             >
-              <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive ? 'text-emerald-400' : 'text-white/50 group-hover:text-white')} />
+              <item.icon className={cn('h-5 w-5 shrink-0', isActive ? 'text-emerald-400' : 'text-white/50 group-hover:text-white')} />
               {!collapsed && (
                 <>
                   <span className="flex-1 truncate">{item.label}</span>
-                  {isActive && <ChevronRight className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0" />}
+                  {isActive && <ChevronRight className="h-3.5 w-3.5 text-emerald-400 shrink-0" />}
                 </>
               )}
             </Link>
@@ -115,7 +115,7 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
           )}
           title={collapsed ? 'Logout' : undefined}
         >
-          <LogOut className="h-5 w-5 flex-shrink-0" />
+          <LogOut className="h-5 w-5 shrink-0" />
           {!collapsed && <span>Logout</span>}
         </button>
         {!collapsed && (

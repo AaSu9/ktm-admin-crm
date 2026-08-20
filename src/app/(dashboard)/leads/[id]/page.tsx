@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
-import { formatDate, formatPrice, getStatusColor, cn } from '@/lib/utils'
+import { formatPrice, getStatusColor, cn } from '@/lib/utils'
 import Link from 'next/link'
-import { ArrowLeft, Phone, Mail, User, Shield, Tag, Calendar, Sparkles, Plus, Trash2, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, User, Tag, Calendar, Sparkles, Trash2 } from 'lucide-react'
 import { addLeadNote, updateLead, deleteLead } from '@/app/actions/leads'
 import { scheduleVisit } from '@/app/actions/visits'
 import DeleteForm from '@/components/DeleteForm'
@@ -14,11 +14,14 @@ export default async function LeadDetailPage({ params: paramsPromise }: { params
   if (!session) redirect('/login')
 
   const leadId = params.id
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let lead: any = null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let agents: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let properties: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let matchedProperties: any[] = []
-  let customers: any[] = []
   let dbError = false
 
   try {
@@ -39,10 +42,6 @@ export default async function LeadDetailPage({ params: paramsPromise }: { params
     properties = await prisma.property.findMany({
       where: { status: 'AVAILABLE' },
       orderBy: { created_at: 'desc' },
-    })
-
-    customers = await prisma.customer.findMany({
-      orderBy: { name: 'asc' },
     })
 
     // Automatic Matching Logic
@@ -132,7 +131,7 @@ export default async function LeadDetailPage({ params: paramsPromise }: { params
   async function handleUpdateLeadAction(formData: FormData) {
     'use server'
     const status = formData.get('status') as string
-    const priority = formData.get('priority') as any
+    const priority = formData.get('priority') as string
     const budgetStr = formData.get('budget') as string
     const agentId = formData.get('agentId') as string
     const propertyId = formData.get('propertyId') as string
@@ -227,9 +226,9 @@ export default async function LeadDetailPage({ params: paramsPromise }: { params
         <div className="lg:col-span-2 space-y-6">
           {/* Card: Profile Details */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-0 opacity-40" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full z-0 opacity-40" />
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-2xl shadow-md">
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-2xl shadow-md">
                 {lead.full_name.charAt(0)}
               </div>
               <div className="space-y-1.5 flex-1 min-w-0">
@@ -285,7 +284,7 @@ export default async function LeadDetailPage({ params: paramsPromise }: { params
                     const text = match ? match[2] : note
                     return (
                       <div key={idx} className="relative">
-                        <div className="absolute -left-[23px] top-1.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white ring-4 ring-emerald-50" />
+                        <div className="absolute -left-5.75 top-1.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white ring-4 ring-emerald-50" />
                         <p className="text-xs text-gray-400 font-semibold">{time}</p>
                         <p className="text-sm text-gray-700 mt-1 leading-relaxed">{text}</p>
                       </div>
@@ -327,7 +326,7 @@ export default async function LeadDetailPage({ params: paramsPromise }: { params
               ) : (
                 matchedProperties.map((p: any) => (
                   <div key={p.id} className="border border-gray-100 rounded-2xl p-4 flex gap-3 hover:border-emerald-100 hover:shadow-sm transition-all group">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0">
                       <img src={p.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt={p.title} className="w-full h-full object-cover" />
                     </div>
                     <div className="min-w-0 flex-1 flex flex-col justify-between">

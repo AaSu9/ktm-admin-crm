@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { formatDate, getStatusColor, cn } from '@/lib/utils'
-import { Mail, MessageSquare, Search, Filter, Download, Trash2, CheckCheck, Reply, X, Send } from 'lucide-react'
+import { Mail, MessageSquare, Search, Download, Trash2, CheckCheck, Reply, X, Send } from 'lucide-react'
 import { markMessageRead, replyToMessage, deleteMessage, bulkMarkMessagesRead, bulkDeleteMessages } from '@/app/actions/messages'
 import { exportToCSV } from '@/lib/csvExport'
 import { toast } from 'sonner'
@@ -26,7 +26,7 @@ export function MessagesClient({ initialMessages }: { initialMessages: Message[]
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
   // Filter
   const filtered = messages.filter((msg) => {
@@ -104,7 +104,7 @@ export function MessagesClient({ initialMessages }: { initialMessages: Message[]
         toast.error(res.error || 'Failed to save reply')
         setMessages(originalMessages)
       }
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to send reply. Please try again.')
       setMessages(originalMessages)
     }
@@ -125,7 +125,7 @@ export function MessagesClient({ initialMessages }: { initialMessages: Message[]
       { key: 'content', label: 'Message' },
       { key: 'status', label: 'Status' },
       { key: 'reply', label: 'Reply' },
-      { key: 'createdAt', label: 'Date', format: (v: any) => new Date(v).toLocaleDateString('en-IN') },
+      { key: 'createdAt', label: 'Date', format: (v: Date | string) => new Date(v).toLocaleDateString('en-IN') },
     ], 'messages-export')
   }
 
@@ -226,10 +226,10 @@ export function MessagesClient({ initialMessages }: { initialMessages: Message[]
                   type="checkbox"
                   checked={selectedIds.has(msg.id)}
                   onChange={() => toggleSelect(msg.id)}
-                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mt-1 cursor-pointer flex-shrink-0"
+                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mt-1 cursor-pointer shrink-0"
                 />
                 {/* Avatar */}
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
                   {msg.senderName.charAt(0)}
                 </div>
                 {/* Content */}
@@ -239,7 +239,7 @@ export function MessagesClient({ initialMessages }: { initialMessages: Message[]
                       <p className={cn('text-sm font-medium text-gray-800', msg.status === 'UNREAD' && 'font-semibold')}>{msg.senderName}</p>
                       <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium', getStatusColor(msg.status))}>{msg.status}</span>
                     </div>
-                    <span className="text-xs text-gray-400 flex-shrink-0">{formatDate(msg.createdAt)}</span>
+                    <span className="text-xs text-gray-400 shrink-0">{formatDate(msg.createdAt)}</span>
                   </div>
                   {msg.subject && <p className="text-sm text-gray-700 font-medium truncate">{msg.subject}</p>}
                   <p className="text-sm text-gray-500 truncate">{msg.content}</p>

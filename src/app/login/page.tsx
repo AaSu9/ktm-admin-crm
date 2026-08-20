@@ -41,7 +41,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-emerald-50 via-white to-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Decorative blobs */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-200/30 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-300/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
@@ -62,7 +62,7 @@ export default function LoginPage() {
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-400 h-5 w-5" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
                   {...register('email')}
                   type="email"

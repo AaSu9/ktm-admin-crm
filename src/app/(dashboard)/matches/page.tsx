@@ -1,17 +1,45 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { formatPrice, cn } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import Link from 'next/link'
-import { Sparkles, ArrowRight, Home, User, CheckCircle, Eye, Phone } from 'lucide-react'
+import { Sparkles, ArrowRight, User } from 'lucide-react'
+
+interface LeadItem {
+  id: string
+  full_name: string
+  phone: string
+  inquiry_type?: string | null
+  property_interest?: string | null
+  budget?: number | null
+  notes?: string[]
+  agent?: { name: string } | null
+}
+
+interface PropertyItem {
+  id: string
+  title: string
+  location: string
+  price: number
+  category: string
+  property_type: string
+  images?: string[]
+}
+
+interface MatchItem {
+  id: string
+  lead: LeadItem
+  property: PropertyItem
+  score: number
+}
 
 export default async function MatchesPage() {
   const session = await auth()
   if (!session) redirect('/login')
 
-  let leads: any[] = []
-  let properties: any[] = []
-  let matches: any[] = []
+  let leads: LeadItem[] = []
+  let properties: PropertyItem[] = []
+  let matches: MatchItem[] = []
   let dbError = false
 
   try {
@@ -181,7 +209,7 @@ export default async function MatchesPage() {
             <div key={m.id} className="bg-white rounded-3xl border border-gray-100 p-6 flex flex-col lg:flex-row gap-6 items-center justify-between shadow-sm hover:shadow-md transition-all">
               {/* Match Score Indicator */}
               <div className="flex items-center gap-4 w-full lg:w-auto">
-                <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex flex-col items-center justify-center flex-shrink-0 shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex flex-col items-center justify-center shrink-0 shadow-sm">
                   <span className="text-xl font-black text-amber-600 leading-none">{m.score}%</span>
                   <span className="text-[10px] text-amber-500/80 font-bold mt-1">MATCH</span>
                 </div>
@@ -222,7 +250,7 @@ export default async function MatchesPage() {
 
                 {/* Property Card */}
                 <div className="flex-1 bg-gray-50/50 rounded-2xl p-4 border border-gray-100 w-full flex gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0">
                     <img src={m.property.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt={m.property.title} className="w-full h-full object-cover" />
                   </div>
                   <div className="min-w-0 flex-1 flex flex-col justify-between">

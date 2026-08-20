@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { cn, getInitials } from '@/lib/utils'
-import { Plus, UserCog, Phone, Mail, TrendingUp, Search, Download, X, Eye, EyeOff, Shield, Edit, Globe, Camera } from 'lucide-react'
+import { Plus, UserCog, Phone, Mail, TrendingUp, Search, Download, X, Eye, EyeOff, Edit, Globe, Camera } from 'lucide-react'
 import { createAgent, updateAgent, deleteAgent } from '@/app/actions/agents'
 import { uploadImage } from '@/app/actions/properties'
 import { exportToCSV } from '@/lib/csvExport'
@@ -157,7 +157,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
       email: agent.email || '',
       password: '', // Blank by default, doesn't overwrite if left blank
       phone: agent.phone || '',
-      role: agent.role as any,
+      role: (agent.role as 'ADMIN' | 'AGENT' | 'EDITOR') || 'AGENT',
       avatar: agent.avatar || '',
       designation: agent.designation || 'Real Estate Consultant',
       bio: agent.bio || '',
@@ -372,8 +372,8 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-gray-50">
             <div className="flex gap-6">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 block">System Role</label>
-                <select value={formData.role} onChange={(e) => setFormData(p => ({ ...p, role: e.target.value as any }))}
+                <label className="text-xs font-semibold text-gray-500 block">System Role</label>                
+                <select value={formData.role} onChange={(e) => setFormData(p => ({ ...p, role: e.target.value as 'ADMIN' | 'AGENT' | 'EDITOR' }))}
                   className="border border-gray-200 rounded-xl px-3 py-1.5 text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                   <option value="AGENT">Agent</option>
                   <option value="ADMIN">Admin</option>
@@ -430,8 +430,8 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
           const directVisits = agent.visits || []
           const properties = agent.properties || []
           
-          const propertyLeads = properties.flatMap((p: any) => p.leads || [])
-          const propertyVisits = properties.flatMap((p: any) => p.visits || [])
+          const propertyLeads = properties.flatMap((p: any) => (p.leads as any[]) || [])
+          const propertyVisits = properties.flatMap((p: any) => (p.visits as any[]) || [])
           
           const allLeads = [...directLeads, ...propertyLeads]
           // Deduplicate leads by id just in case a lead is both directly assigned and via property
@@ -449,7 +449,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
               <div>
                 <div className="flex items-start gap-3 mb-4">
                   {/* Photo Display */}
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-inner bg-muted">
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-linear-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-inner bg-muted">
                     {agent.avatar ? (
                       <img src={agent.avatar} alt={agent.name} className="w-full h-full object-cover" />
                     ) : (
@@ -477,20 +477,20 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
 
                 {agent.bio && (
                   <p className="text-xs text-gray-500 line-clamp-2 bg-gray-50 p-2.5 rounded-xl mb-4 italic">
-                    "{agent.bio}"
+                    &quot;{agent.bio}&quot;
                   </p>
                 )}
 
                 <div className="space-y-1.5 mb-4">
                   {agent.email && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Mail className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                      <Mail className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                       <span className="truncate">{agent.email}</span>
                     </div>
                   )}
                   {agent.phone && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Phone className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                      <Phone className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                       <span>{agent.phone}</span>
                     </div>
                   )}
@@ -498,19 +498,20 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                   {/* Social links indicators */}
                   {(agent.facebookUrl || agent.instagramUrl || agent.whatsappNumber) && (
                     <div className="flex items-center gap-2 pt-1">
-                      {agent.whatsappNumber && <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-md font-medium flex items-center gap-1">WhatsApp</span>}
-                      {agent.facebookUrl && <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-md font-medium flex items-center gap-1">Facebook</span>}
-                      {agent.instagramUrl && <span className="text-[10px] bg-pink-50 text-pink-600 px-1.5 py-0.5 rounded-md font-medium flex items-center gap-1">Instagram</span>}
+                      {agent.facebookUrl && <a href={agent.facebookUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">Facebook</a>}
+                      {agent.instagramUrl && <a href={agent.instagramUrl} target="_blank" rel="noreferrer" className="text-xs text-pink-600 hover:underline">Instagram</a>}
+                      {agent.whatsappNumber && <a href={`https://wa.me/${agent.whatsappNumber}`} target="_blank" rel="noreferrer" className="text-xs text-emerald-600 hover:underline">WhatsApp</a>}
                     </div>
                   )}
                 </div>
               </div>
 
               <div>
-                <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100">
+                {/* Stats row */}
+                <div className="grid grid-cols-4 gap-1.5 bg-gray-50/80 p-2 rounded-xl text-center border border-gray-100">
                   <div 
-                    className="text-center cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors group"
-                    onClick={() => setDetailsModal({ isOpen: true, title: 'Properties Assigned', type: 'properties', data: properties })}
+                    className="text-center cursor-pointer hover:bg-gray-100 p-1.5 rounded-lg transition-colors group"
+                    onClick={() => setDetailsModal({ isOpen: true, title: 'Assigned Properties', type: 'properties', data: properties })}
                   >
                     <p className="text-lg font-bold text-gray-800 group-hover:text-emerald-600 transition-colors">{totalProperties}</p>
                     <p className="text-[11px] text-gray-400">Properties</p>
@@ -594,12 +595,12 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
               ) : (
                 <div className="space-y-3">
                   {detailsModal.data.map((item: any, i: number) => (
-                    <div key={item.id || i} className="p-4 rounded-xl border border-gray-100 bg-white hover:border-emerald-100 hover:shadow-sm transition-all flex items-center justify-between">
+                    <div key={item.id as string || i} className="p-4 rounded-xl border border-gray-100 bg-white hover:border-emerald-100 hover:shadow-sm transition-all flex items-center justify-between">
                       {(detailsModal.type === 'properties' || detailsModal.type === 'sold') && (
                         <>
                           <div>
-                            <p className="font-semibold text-gray-800">{item.title}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">{item.location}</p>
+                            <p className="font-semibold text-gray-800">{item.title as string}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{item.location as string}</p>
                           </div>
                           <span className={cn('text-xs px-2.5 py-1 rounded-full font-medium', 
                             item.status === 'SOLD' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'

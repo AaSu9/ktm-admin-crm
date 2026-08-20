@@ -22,7 +22,7 @@ export function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed }: Navba
     .map((seg) => seg.charAt(0).toUpperCase() + seg.slice(1))
 
   return (
-    <header className="h-16 bg-white border-b border-gray-100 px-4 flex items-center justify-between gap-4 flex-shrink-0 z-10">
+    <header className="h-16 bg-white border-b border-gray-100 px-4 flex items-center justify-between gap-4 shrink-0 z-10">
       {/* Left */}
       <div className="flex items-center gap-3">
         {/* Mobile menu */}
@@ -64,7 +64,7 @@ export function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed }: Navba
           </div>
           <div className="hidden sm:block">
             <p className="text-sm font-medium text-gray-800 leading-none">{session?.user?.name}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{(session?.user as any)?.role || 'Admin'}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{(session?.user as { role?: string })?.role || 'Admin'}</p>
           </div>
         </div>
       </div>
