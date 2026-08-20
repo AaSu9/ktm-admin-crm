@@ -9,7 +9,7 @@ import { ArrowLeft, Building2 } from 'lucide-react'
 export default async function NewPropertyPage({
   searchParams: searchParamsPromise,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; added?: string }>
 }) {
   const searchParams = await searchParamsPromise
   const errorMsg = searchParams.error
@@ -133,9 +133,9 @@ export default async function NewPropertyPage({
       dimension,
     })
 
-    if (result.success) {
-      redirect('/properties')
-    } else {
+      if (result.success) {
+        redirect('/properties?added=true')
+      } else {
       console.error(result.error)
       redirect(`/properties/new?error=${encodeURIComponent(result.error || 'Failed to create property')}`)
     }
@@ -157,6 +157,12 @@ export default async function NewPropertyPage({
       {errorMsg && (
         <div className="bg-red-50 border border-red-200 text-red-800 rounded-2xl p-4 text-sm">
           ⚠️ <strong>Error:</strong> {errorMsg}
+        </div>
+      )}
+
+      {searchParams?.added && (
+        <div className="bg-green-50 border border-green-200 text-green-800 rounded-2xl p-4 text-sm mb-4">
+          🎉 <strong>Success:</strong> Property added successfully!
         </div>
       )}
 
@@ -486,7 +492,7 @@ export default async function NewPropertyPage({
                 name="negotiable"
                 id="negotiable"
                 defaultChecked
-                className="h-4.5 w-4.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                className="h-5 w-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
               />
               <label htmlFor="negotiable" className="text-sm font-semibold text-gray-700 cursor-pointer flex items-center gap-1">
                 Price is Negotiable
