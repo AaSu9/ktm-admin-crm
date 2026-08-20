@@ -469,7 +469,7 @@ export default async function NewPropertyPage({
               <label className="text-sm font-semibold text-gray-700">Google Map Location / Embed URL</label>
               <input type="text" name="map_url" placeholder="e.g. https://google.com/maps/... or https://maps.app.goo.gl/..."
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
-            </div>  </div>
+            </div>
 
             {/* Latitude */}
             <div className="space-y-2">
