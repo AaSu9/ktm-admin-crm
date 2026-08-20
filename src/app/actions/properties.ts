@@ -98,17 +98,25 @@ export async function createProperty(formData: {
     // Require authentication
     await requireAuth()
 
+    // Auto-generate property_id if blank or provided
+    let propId = formData.property_id?.trim() || `prop-${Math.floor(1000 + Math.random() * 9000)}`
+    
     // Check if property_id already exists
-    const existing = await prisma.property.findUnique({
-      where: { property_id: formData.property_id }
+    let existing = await prisma.property.findUnique({
+      where: { property_id: propId }
     })
+    
     if (existing) {
-      return { success: false, error: 'Property ID already exists. Please choose a unique Property ID.' }
+      if (!formData.property_id?.trim()) {
+        propId = `prop-${Date.now().toString().slice(-6)}`
+      } else {
+        return { success: false, error: 'Property ID already exists. Please choose a unique Property ID.' }
+      }
     }
 
     const property = await prisma.property.create({
       data: {
-        property_id: formData.property_id,
+        property_id: propId,
         title: formData.title,
         description: formData.description || null,
         location: formData.location,

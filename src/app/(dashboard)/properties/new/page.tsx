@@ -265,7 +265,7 @@ export default async function NewPropertyPage({
             {/* Total Floors */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Total Floors</label>
-              <input type="number" step="0.1" name="total_floors" placeholder="e.g. 2.5"
+              <input type="number" step="0.1" name="totalFloors" placeholder="e.g. 2.5"
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50" />
             </div>
 
