@@ -286,15 +286,18 @@ export async function updateProperty(
         data,
       })
     } catch (err) {
-      console.warn('Prisma property update failed, returning success fallback:', err)
+      console.error('Prisma property update error:', err)
+      const msg = err instanceof Error ? err.message : 'Failed to update property'
+      return { success: false, error: msg }
     }
 
     revalidatePath('/properties')
     revalidatePath(`/properties/${id}`)
     return { success: true, property }
   } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Failed to update property'
     console.error('Failed to update property:', error)
-    return { success: true }
+    return { success: false, error: msg }
   }
 }
 
