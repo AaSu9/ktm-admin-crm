@@ -32,9 +32,9 @@ export default function DeleteForm({
     setIsDeleting(true);
     try {
       const formData = new FormData(e.currentTarget);
-      const res = await action(formData);
-      if (res && typeof res === 'object' && 'success' in res && res.success === false) {
-        toast.error((res.error as string) || 'Failed to delete item');
+      const res = (await action(formData)) as { success?: boolean; error?: string } | null | undefined;
+      if (res && typeof res === 'object' && res.success === false) {
+        toast.error(res.error || 'Failed to delete item');
       } else {
         toast.success(successMessage);
       }
