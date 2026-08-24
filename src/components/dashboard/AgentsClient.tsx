@@ -8,6 +8,19 @@ import { createAgent, updateAgent, deleteAgent } from '@/app/actions/agents'
 import { uploadImage } from '@/app/actions/properties'
 import { exportToCSV } from '@/lib/csvExport'
 
+interface AgentModalItem {
+  id?: string;
+  title?: string;
+  location?: string;
+  status?: string;
+  full_name?: string;
+  phone?: string;
+  email?: string;
+  clientName?: string;
+  clientPhone?: string;
+  date?: string | number | Date;
+}
+
 interface Agent {
   id: string
   name: string
@@ -35,7 +48,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
     isOpen: boolean;
     title: string;
     type: 'properties' | 'sold' | 'leads' | 'visits';
-    data: Record<string, unknown>[];
+    data: AgentModalItem[];
   }>({ isOpen: false, title: '', type: 'properties', data: [] })
   
   const [showForm, setShowForm] = useState(false)
@@ -595,8 +608,8 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {detailsModal.data.map((item: Record<string, any>, i: number) => (
-                    <div key={(item.id as string) || i} className="p-4 rounded-xl border border-gray-100 bg-white hover:border-emerald-100 hover:shadow-sm transition-all flex items-center justify-between">
+                  {detailsModal.data.map((item: AgentModalItem, i: number) => (
+                    <div key={item.id || i} className="p-4 rounded-xl border border-gray-100 bg-white hover:border-emerald-100 hover:shadow-sm transition-all flex items-center justify-between">
                       {(detailsModal.type === 'properties' || detailsModal.type === 'sold') && (
                         <>
                           <div>
