@@ -595,18 +595,18 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {detailsModal.data.map((item: Record<string, unknown>, i: number) => (
-                    <div key={item.id as string || i} className="p-4 rounded-xl border border-gray-100 bg-white hover:border-emerald-100 hover:shadow-sm transition-all flex items-center justify-between">
+                  {detailsModal.data.map((item: Record<string, any>, i: number) => (
+                    <div key={(item.id as string) || i} className="p-4 rounded-xl border border-gray-100 bg-white hover:border-emerald-100 hover:shadow-sm transition-all flex items-center justify-between">
                       {(detailsModal.type === 'properties' || detailsModal.type === 'sold') && (
                         <>
                           <div>
-                            <p className="font-semibold text-gray-800">{item.title as string}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">{item.location as string}</p>
+                            <p className="font-semibold text-gray-800">{String(item.title || '')}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{String(item.location || '')}</p>
                           </div>
                           <span className={cn('text-xs px-2.5 py-1 rounded-full font-medium', 
                             item.status === 'SOLD' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
                           )}>
-                            {item.status}
+                            {String(item.status || '')}
                           </span>
                         </>
                       )}
@@ -614,14 +614,14 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                       {detailsModal.type === 'leads' && (
                         <>
                           <div>
-                            <p className="font-semibold text-gray-800">{item.full_name}</p>
+                            <p className="font-semibold text-gray-800">{String(item.full_name || '')}</p>
                             <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                              {item.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3"/> {item.phone}</span>}
-                              {item.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3"/> {item.email}</span>}
+                              {Boolean(item.phone) && <span className="flex items-center gap-1"><Phone className="h-3 w-3"/> {String(item.phone)}</span>}
+                              {Boolean(item.email) && <span className="flex items-center gap-1"><Mail className="h-3 w-3"/> {String(item.email)}</span>}
                             </div>
                           </div>
                           <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-gray-100 text-gray-700">
-                            {item.status || 'NEW'}
+                            {String(item.status || 'NEW')}
                           </span>
                         </>
                       )}
@@ -629,16 +629,16 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                       {detailsModal.type === 'visits' && (
                         <>
                           <div>
-                            <p className="font-semibold text-gray-800">{item.clientName}</p>
+                            <p className="font-semibold text-gray-800">{String(item.clientName || '')}</p>
                             <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                              {item.clientPhone && <span className="flex items-center gap-1"><Phone className="h-3 w-3"/> {item.clientPhone}</span>}
-                              <span>{new Date(item.date).toLocaleDateString()}</span>
+                              {Boolean(item.clientPhone) && <span className="flex items-center gap-1"><Phone className="h-3 w-3"/> {String(item.clientPhone)}</span>}
+                              <span>{item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</span>
                             </div>
                           </div>
                           <span className={cn('text-xs px-2.5 py-1 rounded-full font-medium', 
                             item.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'
                           )}>
-                            {item.status}
+                            {String(item.status || '')}
                           </span>
                         </>
                       )}
