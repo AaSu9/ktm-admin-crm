@@ -9,6 +9,11 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'KTM RealEstate Admin — Manage Your Real Estate Business Smarter',
   description: 'Everything you need to manage your real estate business in one powerful platform.',
+  keywords: ['KTM Real Estate Admin', 'CRM Real Estate Nepal', 'Kathmandu Real Estate Management'],
+  robots: {
+    index: false,
+    follow: false,
+  },
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',
