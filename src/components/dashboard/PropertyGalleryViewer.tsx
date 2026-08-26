@@ -33,7 +33,7 @@ export default function PropertyGalleryViewer({
       {/* Main Image Banner with uncropped presentation */}
       <div 
         onClick={() => setLightboxOpen(true)}
-        className="relative min-h-80 sm:min-h-105 max-h-125 w-full bg-slate-950 rounded-t-3xl overflow-hidden cursor-pointer group flex items-center justify-center border-b border-gray-100"
+        className="relative min-h-96 sm:min-h-120 max-h-[580px] w-full bg-slate-950 rounded-t-3xl overflow-hidden cursor-pointer group flex items-center justify-center border-b border-gray-100"
       >
         {/* Ambient blurred backdrop for seamless fit with any aspect ratio */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -49,7 +49,7 @@ export default function PropertyGalleryViewer({
         <img
           src={currentImage}
           alt={`${title} - Photo ${activeIndex + 1}`}
-          className="relative z-10 max-h-80 sm:max-h-105 max-w-full w-auto h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02] drop-shadow-xl"
+          className="relative z-10 max-h-96 sm:max-h-120 max-w-full w-auto h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02] drop-shadow-xl"
         />
 
         {/* Top Badges */}
@@ -152,7 +152,7 @@ export default function PropertyGalleryViewer({
           </div>
 
           {/* Large Image Center */}
-          <div className="relative flex-1 flex items-center justify-center my-auto py-2 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          <div className="relative flex-1 min-h-0 w-full flex items-center justify-center my-auto py-2" onClick={(e) => e.stopPropagation()}>
             {galleryImages.length > 1 && (
               <button
                 type="button"
@@ -163,12 +163,12 @@ export default function PropertyGalleryViewer({
               </button>
             )}
 
-            <div className="flex items-center justify-center w-full h-full max-h-[82vh] p-2">
+            <div className="flex items-center justify-center w-full h-full p-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={galleryImages[activeIndex]}
                 alt={`${title} - Fullscreen photo ${activeIndex + 1}`}
-                className="max-h-[82vh] max-w-full w-auto h-auto object-contain rounded-2xl shadow-2xl transition-all duration-300 drop-shadow-2xl"
+                className="max-h-[calc(100vh-170px)] max-w-[calc(100vw-40px)] w-auto h-auto object-contain rounded-2xl shadow-2xl transition-all duration-300 drop-shadow-2xl"
               />
             </div>
 
