@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
@@ -251,8 +250,11 @@ export default async function MatchesPage() {
 
                 {/* Property Card */}
                 <div className="flex-1 bg-gray-50/50 rounded-2xl p-4 border border-gray-100 w-full flex gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 relative">
-                    <Image src={m.property.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt={m.property.title || 'Property'} width={48} height={48} className="w-full h-full object-cover" />
+                  <div className="w-12 h-12 rounded-xl bg-slate-950 overflow-hidden shrink-0 relative flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={m.property.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover blur-xs opacity-40 scale-110 pointer-events-none" />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={m.property.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt={m.property.title || 'Property'} className="relative z-10 max-w-full max-h-full w-auto h-auto object-contain" />
                   </div>
                   <div className="min-w-0 flex-1 flex flex-col justify-between">
                     <div>

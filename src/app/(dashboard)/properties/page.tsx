@@ -147,10 +147,14 @@ export default async function PropertiesPage({
                     <tr key={prop.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                          <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-900 shrink-0 relative flex items-center justify-center">
                             {prop.images?.[0] ? (
-                              /* eslint-disable-next-line @next/next/no-img-element */
-                              <img src={prop.images[0]} alt={prop.title} className="w-full h-full object-cover" />
+                              <>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={prop.images[0]} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover blur-xs opacity-40 scale-110 pointer-events-none" />
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={prop.images[0]} alt={prop.title} className="relative z-10 max-w-full max-h-full w-auto h-auto object-contain" />
+                              </>
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-300">
                                 <Building2 className="h-5 w-5" />

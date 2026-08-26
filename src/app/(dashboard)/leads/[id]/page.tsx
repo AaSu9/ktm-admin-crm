@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
@@ -327,8 +326,11 @@ export default async function LeadDetailPage({ params: paramsPromise }: { params
               ) : (
                 matchedProperties.map((p) => (
                   <div key={p.id} className="border border-gray-100 rounded-2xl p-4 flex gap-3 hover:border-emerald-100 hover:shadow-sm transition-all group">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0 relative">
-                      <Image src={p.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt={p.title || 'Property'} width={64} height={64} className="w-full h-full object-cover" />
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-950 shrink-0 relative flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover blur-xs opacity-40 scale-110 pointer-events-none" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100'} alt={p.title || 'Property'} className="relative z-10 max-w-full max-h-full w-auto h-auto object-contain" />
                     </div>
                     <div className="min-w-0 flex-1 flex flex-col justify-between">
                       <div>

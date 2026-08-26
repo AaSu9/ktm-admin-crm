@@ -3,9 +3,60 @@ import { auth } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import { formatDate, formatPrice, getStatusColor, cn } from '@/lib/utils'
 import Link from 'next/link'
-import { ArrowLeft, Building2, MapPin, DollarSign, User, Shield, Calendar, Users, Sparkles, CheckCircle, Tag, Eye } from 'lucide-react'
+import { ArrowLeft, MapPin, User, Calendar, Sparkles, Eye } from 'lucide-react'
 import { deleteProperty } from '@/app/actions/properties'
 import DeleteForm from '@/components/DeleteForm'
+import PropertyGalleryViewer from '@/components/dashboard/PropertyGalleryViewer'
+
+interface PropertyDetail {
+  id: string
+  property_id?: string | null
+  title: string
+  description?: string | null
+  location: string
+  price: number
+  category: string
+  property_type: string
+  bedrooms?: number | null
+  bathrooms?: number | null
+  area_sqft?: number | null
+  images?: string[]
+  status: string
+  features?: string[]
+  video_url?: string | null
+  youtube_url?: string | null
+  tiktok_url?: string | null
+  map_url?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  agent?: {
+    name?: string | null
+    phone?: string | null
+  } | null
+  visits?: PropertyVisit[]
+}
+
+interface MatchedLead {
+  id: string
+  full_name: string
+  phone?: string | null
+  email?: string | null
+  budget?: number | null
+  priority?: string
+  status?: string
+}
+
+interface PropertyVisit {
+  id: string
+  customer: {
+    name: string
+    phone?: string | null
+  }
+  date: Date | string
+  time: string
+  status: string
+  notes?: string | null
+}
 
 export default async function PropertyDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = await paramsPromise
@@ -13,9 +64,9 @@ export default async function PropertyDetailPage({ params: paramsPromise }: { pa
   if (!session) redirect('/login')
 
   const propId = params.id
-  let property: any = null
-  let matchedLeads: any[] = []
-  let visits: any[] = []
+  let property: PropertyDetail | null = null
+  let matchedLeads: MatchedLead[] = []
+  let visits: PropertyVisit[] = []
   let dbError = false
 
   try {
@@ -142,18 +193,14 @@ export default async function PropertyDetailPage({ params: paramsPromise }: { pa
         <div className="lg:col-span-2 space-y-6">
           {/* Main Info */}
           <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100">
-            {/* Gallery Image */}
-            <div className="h-80 w-full bg-gray-100 relative">
-              <img src={property.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800'} alt={property.title} className="w-full h-full object-cover" />
-              <div className="absolute top-4 left-4 flex gap-2">
-                <span className="bg-emerald-600 text-white font-bold text-xs uppercase px-3 py-1 rounded-xl shadow">
-                  For {property.category}
-                </span>
-                <span className={cn('font-bold text-xs uppercase px-3 py-1 rounded-xl shadow', getStatusColor(property.status))}>
-                  {property.status}
-                </span>
-              </div>
-            </div>
+            {/* Gallery Image Viewer - Supports any aspect ratio uncropped */}
+            <PropertyGalleryViewer
+              images={property.images}
+              title={property.title}
+              category={property.category}
+              status={property.status}
+              statusBadgeClass={getStatusColor(property.status)}
+            />
 
             {/* Profile body */}
             <div className="p-6 md:p-8 space-y-6">
