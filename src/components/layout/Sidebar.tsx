@@ -24,20 +24,22 @@ import {
   DollarSign,
 } from 'lucide-react'
 
+import { useSession } from 'next-auth/react'
+
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/properties', label: 'Properties', icon: Building2 },
-  { href: '/leads', label: 'Leads', icon: Users2 },
-  { href: '/matches', label: 'Auto Matching', icon: Sparkles },
-  { href: '/customers', label: 'Customers', icon: UserRound },
-  { href: '/visits', label: 'Visits', icon: CalendarCheck },
-  { href: '/deals', label: 'Deals & Commission', icon: DollarSign },
-  { href: '/agents', label: 'Agents', icon: UserCog },
-  { href: '/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/content', label: 'Content', icon: FileEdit },
-  { href: '/blogs', label: 'Blogs', icon: FileText },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'EDITOR'] },
+  { href: '/properties', label: 'Properties', icon: Building2, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/leads', label: 'Leads', icon: Users2, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/matches', label: 'Auto Matching', icon: Sparkles, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/customers', label: 'Customers', icon: UserRound, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/visits', label: 'Visits', icon: CalendarCheck, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/deals', label: 'Deals & Commission', icon: DollarSign, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/agents', label: 'Agents & Roles', icon: UserCog, roles: ['SUPER_ADMIN'] },
+  { href: '/messages', label: 'Messages', icon: MessageSquare, roles: ['SUPER_ADMIN', 'ADMIN'] },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3, roles: ['SUPER_ADMIN', 'ADMIN'] },
+  { href: '/content', label: 'Content CMS', icon: FileEdit, roles: ['SUPER_ADMIN', 'ADMIN', 'EDITOR'] },
+  { href: '/blogs', label: 'Blogs & News', icon: FileText, roles: ['SUPER_ADMIN', 'ADMIN', 'EDITOR'] },
+  { href: '/settings', label: 'Settings', icon: Settings, roles: ['SUPER_ADMIN'] },
 ]
 
 interface SidebarProps {
@@ -48,6 +50,10 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const userRole = (session?.user as { role?: string })?.role || 'SUPER_ADMIN'
+
+  const visibleNavItems = navItems.filter(item => item.roles.includes(userRole))
 
   return (
     <aside
@@ -64,7 +70,7 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
             <Image src="/logo.png" alt="KTM RealEstate" width={32} height={32} className="h-8 w-8 rounded-lg object-contain shrink-0" />
             <div>
               <p className="text-white font-bold text-sm leading-none">KTM RealEstate</p>
-              <p className="text-emerald-400/70 text-xs mt-0.5">Admin Panel</p>
+              <p className="text-emerald-400/70 text-xs mt-0.5 font-medium">{userRole.replace('_', ' ')}</p>
             </div>
           </div>
         )}
@@ -78,7 +84,7 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
             <Link

@@ -7,6 +7,11 @@ export default async function AgentsPage() {
   const session = await auth()
   if (!session) redirect('/login')
 
+  const role = (session.user as { role?: string })?.role
+  if (role !== 'SUPER_ADMIN') {
+    redirect('/dashboard')
+  }
+
   let agents: any[] = []
   let dbError = false
 
