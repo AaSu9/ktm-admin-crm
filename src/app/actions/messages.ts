@@ -74,6 +74,7 @@ export async function replyToMessage(id: string, reply: string) {
       try {
         let nodemailerModule = null
         try {
+          // @ts-ignore
           nodemailerModule = await import('nodemailer')
         } catch {
           console.warn('Nodemailer package not installed. Run: npm install nodemailer @types/nodemailer')

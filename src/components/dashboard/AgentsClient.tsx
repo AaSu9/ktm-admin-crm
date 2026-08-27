@@ -39,6 +39,7 @@ interface Agent {
   instagramUrl?: string | null
   whatsappNumber?: string | null
   showOnWebsite?: boolean
+  priority?: number | null
 }
 
 export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
@@ -70,17 +71,20 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
     instagramUrl: '',
     whatsappNumber: '',
     showOnWebsite: true,
+    priority: 0,
   }
 
   // Form state
   const [formData, setFormData] = useState(initialFormState)
 
-  const filtered = agents.filter((a) =>
-    !search ||
-    a.name.toLowerCase().includes(search.toLowerCase()) ||
-    a.email.toLowerCase().includes(search.toLowerCase()) ||
-    (a.designation && a.designation.toLowerCase().includes(search.toLowerCase()))
-  )
+  const filtered = agents
+    .filter((a) =>
+      !search ||
+      a.name.toLowerCase().includes(search.toLowerCase()) ||
+      a.email.toLowerCase().includes(search.toLowerCase()) ||
+      (a.designation && a.designation.toLowerCase().includes(search.toLowerCase()))
+    )
+    .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0))
 
   const handleSubmit = async () => {
     setFormError('')
@@ -109,6 +113,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
           instagramUrl: formData.instagramUrl || '',
           whatsappNumber: formData.whatsappNumber || '',
           showOnWebsite: formData.showOnWebsite,
+          priority: formData.priority,
         })
 
         if (result.success) {
@@ -129,6 +134,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
             instagramUrl: formData.instagramUrl || null,
             whatsappNumber: formData.whatsappNumber || null,
             showOnWebsite: formData.showOnWebsite,
+            priority: formData.priority,
           } : a))
         } else {
           setFormError(result.error || 'Failed to update agent')
@@ -156,6 +162,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
             instagramUrl: formData.instagramUrl || null,
             whatsappNumber: formData.whatsappNumber || null,
             showOnWebsite: formData.showOnWebsite,
+            priority: formData.priority,
           }, ...prev])
         } else {
           setFormError(result.error || 'Failed to create agent')
@@ -179,6 +186,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
       instagramUrl: agent.instagramUrl || '',
       whatsappNumber: agent.whatsappNumber || '',
       showOnWebsite: agent.showOnWebsite !== undefined ? agent.showOnWebsite : true,
+      priority: agent.priority ?? 0,
     })
     setShowForm(true)
     // Scroll form into view nicely
@@ -384,7 +392,7 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-gray-50">
-            <div className="flex gap-6">
+            <div className="flex gap-6 items-center flex-wrap">
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-gray-500 block">System Role</label>                
                 <select value={formData.role} onChange={(e) => setFormData(p => ({ ...p, role: e.target.value as 'ADMIN' | 'AGENT' | 'EDITOR' }))}
@@ -393,6 +401,19 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                   <option value="ADMIN">Admin</option>
                   <option value="EDITOR">Editor</option>
                 </select>
+              </div>
+
+              {/* Priority Order input */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-500 block">Priority Order #</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={formData.priority}
+                  onChange={(e) => setFormData(p => ({ ...p, priority: parseInt(e.target.value) || 0 }))}
+                  className="w-24 border border-gray-200 rounded-xl px-3 py-1.5 text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:outline-none font-semibold text-emerald-700"
+                  placeholder="e.g. 1"
+                />
               </div>
 
               {/* Website visibility */}
@@ -476,6 +497,9 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
                       <p className="font-semibold text-gray-800 truncate">{agent.name}</p>
                       {!agent.isActive && <span className="text-[9px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-semibold">Inactive</span>}
                       {agent.showOnWebsite === false && <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold" title="Hidden from website">Hidden</span>}
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-bold ml-auto" title="Website Priority Order">
+                        Priority: #{agent.priority ?? 0}
+                      </span>
                     </div>
                     
                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">

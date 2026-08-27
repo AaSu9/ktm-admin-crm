@@ -33,7 +33,7 @@ export default function PropertyGalleryViewer({
       {/* Main Image Banner with uncropped presentation */}
       <div 
         onClick={() => setLightboxOpen(true)}
-        className="relative min-h-96 sm:min-h-120 max-h-[580px] w-full bg-slate-950 rounded-t-3xl overflow-hidden cursor-pointer group flex items-center justify-center border-b border-gray-100"
+        className="relative min-h-96 sm:min-h-120 max-h-145 w-full bg-slate-950 rounded-t-3xl overflow-hidden cursor-pointer group flex items-center justify-center border-b border-gray-100"
       >
         {/* Ambient blurred backdrop for seamless fit with any aspect ratio */}
         {/* eslint-disable-next-line @next/next/no-img-element */}

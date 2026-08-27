@@ -18,6 +18,7 @@ export async function createAgent(formData: {
   instagramUrl?: string
   whatsappNumber?: string
   showOnWebsite?: boolean
+  priority?: number
 }) {
   try {
     // Only ADMIN/SUPER_ADMIN can create agents
@@ -46,6 +47,7 @@ export async function createAgent(formData: {
         instagramUrl: formData.instagramUrl || null,
         whatsappNumber: formData.whatsappNumber || null,
         showOnWebsite: formData.showOnWebsite !== undefined ? formData.showOnWebsite : true,
+        priority: formData.priority !== undefined ? Number(formData.priority) : 0,
         isActive: true,
       },
     })
@@ -75,6 +77,7 @@ export async function updateAgent(
     instagramUrl?: string
     whatsappNumber?: string
     showOnWebsite?: boolean
+    priority?: number
   }
 ) {
   try {
@@ -103,6 +106,7 @@ export async function updateAgent(
         instagramUrl: formData.instagramUrl !== undefined ? formData.instagramUrl || null : undefined,
         whatsappNumber: formData.whatsappNumber !== undefined ? formData.whatsappNumber || null : undefined,
         showOnWebsite: formData.showOnWebsite,
+        priority: formData.priority !== undefined ? Number(formData.priority) : undefined,
       },
     })
     revalidatePath('/agents')
