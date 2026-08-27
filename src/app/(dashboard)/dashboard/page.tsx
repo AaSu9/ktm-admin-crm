@@ -17,9 +17,7 @@ import {
   UserCheck, 
   PenTool, 
   Sparkles,
-  CheckCircle,
-  Clock,
-  MessageSquare
+  Clock
 } from 'lucide-react'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { RecentLeads } from '@/components/dashboard/RecentLeads'
@@ -42,7 +40,7 @@ export default async function DashboardPage() {
   // ==========================================
   if (role === 'EDITOR') {
     let publishedBlogs = 0, draftBlogs = 0, featuredBlogs = 0, testimonialsCount = 0
-    let recentBlogs: any[] = [], activeContents: any[] = []
+    let recentBlogs: Record<string, unknown>[] = []
 
     try {
       const results = await Promise.all([
@@ -51,9 +49,8 @@ export default async function DashboardPage() {
         prisma.blog.count({ where: { isFeatured: true } }),
         prisma.testimonial.count(),
         prisma.blog.findMany({ take: 6, orderBy: { createdAt: 'desc' }, include: { author: true } }),
-        prisma.content.findMany({ take: 5 }),
       ])
-      ;[publishedBlogs, draftBlogs, featuredBlogs, testimonialsCount, recentBlogs, activeContents] = results
+      ;[publishedBlogs, draftBlogs, featuredBlogs, testimonialsCount, recentBlogs] = results
     } catch {
       console.error("DB error fetching editor dashboard data")
     }
@@ -108,7 +105,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
             href="/blogs"
-            className="group bg-gradient-to-br from-emerald-500 to-emerald-700 p-6 rounded-2xl text-white shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
+            className="group bg-linear-to-br from-emerald-500 to-emerald-700 p-6 rounded-2xl text-white shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
           >
             <div>
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3 backdrop-blur-xs">
@@ -124,7 +121,7 @@ export default async function DashboardPage() {
 
           <Link
             href="/content"
-            className="group bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-2xl text-white shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
+            className="group bg-linear-to-br from-blue-600 to-indigo-700 p-6 rounded-2xl text-white shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
           >
             <div>
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3 backdrop-blur-xs">
@@ -140,7 +137,7 @@ export default async function DashboardPage() {
 
           <Link
             href="/content"
-            className="group bg-gradient-to-br from-purple-600 to-pink-700 p-6 rounded-2xl text-white shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
+            className="group bg-linear-to-br from-purple-600 to-pink-700 p-6 rounded-2xl text-white shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
           >
             <div>
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3 backdrop-blur-xs">
@@ -202,7 +199,7 @@ export default async function DashboardPage() {
   // ==========================================
   if (role === 'AGENT') {
     let myPropertiesCount = 0, myActiveCount = 0, mySoldCount = 0, myLeadsCount = 0, myVisitsCount = 0, myDealsCount = 0
-    let myRecentLeads: any[] = [], myLeadsByStatus: any[] = [], myPropertiesByType: any[] = []
+    let myRecentLeads: unknown[] = [], myLeadsByStatus: unknown[] = [], myPropertiesByType: unknown[] = []
 
     try {
       const results = await Promise.all([
