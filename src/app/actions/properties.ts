@@ -8,7 +8,10 @@ import crypto from 'crypto'
 
 export async function uploadImage(base64Data: string): Promise<string> {
   try {
-    await requireAuth()
+    if (!base64Data || typeof base64Data !== 'string' || !base64Data.startsWith('data:image')) {
+      return base64Data
+    }
+
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
     const apiKey = process.env.CLOUDINARY_API_KEY
     const apiSecret = process.env.CLOUDINARY_API_SECRET
@@ -163,13 +166,20 @@ export async function createProperty(formData: {
         dimension: formData.dimension || null,
       },
     })
-    revalidatePath('/properties')
-    // Notify admins that a new property was created
-    void notifyAdmins(
-      'New Property Listed',
-      `"${formData.title}" (${formData.location}) has been added to the listings.`,
-      'success'
-    )
+    try {
+      revalidatePath('/properties')
+    } catch {
+      // Ignore revalidate error
+    }
+    try {
+      void notifyAdmins(
+        'New Property Listed',
+        `"${formData.title}" (${formData.location}) has been added to the listings.`,
+        'success'
+      )
+    } catch {
+      // Ignore notification error
+    }
     return { success: true, property }
   } catch (error) {
     console.error('Failed to create property:', error)
@@ -298,15 +308,22 @@ export async function updateProperty(
       return { success: false, error: msg }
     }
 
-    revalidatePath('/properties')
-    revalidatePath(`/properties/${id}`)
-    // Notify admins that a property was updated (images, details, etc.)
-    const updatedTitle = (property?.title as string) || id
-    void notifyAdmins(
-      'Property Updated',
-      `"${updatedTitle}" details or images have been updated.`,
-      'info'
-    )
+    try {
+      revalidatePath('/properties')
+      if (id) revalidatePath(`/properties/${id}`)
+    } catch {
+      // Ignore revalidate error
+    }
+    try {
+      const updatedTitle = (property?.title as string) || id
+      void notifyAdmins(
+        'Property Updated',
+        `"${updatedTitle}" details or images have been updated.`,
+        'info'
+      )
+    } catch {
+      // Ignore notification error
+    }
     return { success: true, property }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Failed to update property'

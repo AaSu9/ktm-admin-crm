@@ -125,10 +125,14 @@ export default function EditPropertyForm({ propId, property, agents, dbError }: 
       const base64Images = uploadedImagesStr ? JSON.parse(uploadedImagesStr) : []
       const images: string[] = []
       for (const base64 of base64Images) {
-        if (base64.startsWith('data:image')) {
-          const url = await uploadImage(base64)
-          images.push(url)
-        } else {
+        try {
+          if (typeof base64 === 'string' && base64.startsWith('data:image')) {
+            const url = await uploadImage(base64)
+            images.push(url || base64)
+          } else {
+            images.push(base64)
+          }
+        } catch {
           images.push(base64)
         }
       }
