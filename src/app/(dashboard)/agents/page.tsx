@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { AgentsClient } from '@/components/dashboard/AgentsClient'
 
+export const revalidate = 60
+
 export default async function AgentsPage() {
   const session = await auth()
   if (!session) redirect('/login')
@@ -16,17 +18,16 @@ export default async function AgentsPage() {
   let dbError = false
 
   try {
+    // Use _count instead of loading full relations — avoids loading hundreds of rows per agent
     agents = await prisma.user.findMany({
       where: { role: { in: ['AGENT', 'ADMIN', 'EDITOR'] } },
       include: {
-        leads: true,
-        properties: {
-          include: {
-            leads: true,
-            visits: true,
-          }
+        _count: {
+          select: { leads: true, properties: true, visits: true },
         },
-        visits: true,
+        leads: { select: { status: true }, take: 100 },
+        properties: { select: { id: true }, take: 50 },
+        visits: { select: { status: true }, take: 50 },
       },
       orderBy: { createdAt: 'desc' },
     })

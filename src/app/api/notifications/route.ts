@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server'
+
+// Cache notifications for 15s — prevents every 30s poll from opening a new DB connection
+export const revalidate = 15
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
@@ -31,7 +34,10 @@ export async function GET() {
 
     const unreadCount = notifications.filter((n) => !n.read).length
 
-    return NextResponse.json({ notifications, unreadCount })
+    const response = NextResponse.json({ notifications, unreadCount })
+    // Tell browser & CDN to cache for 15s, revalidate in background
+    response.headers.set('Cache-Control', 's-maxage=15, stale-while-revalidate=30')
+    return response
   } catch (error) {
     console.error('Notifications API error:', error)
     // Graceful fallback

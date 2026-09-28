@@ -39,25 +39,31 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(true)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Fetch notifications
-  const fetchNotifications = async () => {
-    try {
-      const res = await fetch('/api/notifications')
-      const data = await res.json()
-      setNotifications(data.notifications || [])
-      setUnreadCount(data.unreadCount || 0)
-    } catch {
-      // Silent fail — keep whatever we have
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    fetchNotifications()
-    // Poll every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000)
-    return () => clearInterval(interval)
+    let cancelled = false
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/api/notifications')
+        const data = await res.json() as { notifications?: Notification[]; unreadCount?: number }
+        if (!cancelled) {
+          setNotifications(data.notifications ?? [])
+          setUnreadCount(data.unreadCount ?? 0)
+        }
+      } catch {
+        // Silent fail — keep whatever we have
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void loadNotifications()
+    // Poll every 60 seconds (notifications are cached for 15s server-side too)
+    const interval = setInterval(() => { void loadNotifications() }, 60000)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
   }, [])
 
   // Close on outside click
@@ -108,7 +114,7 @@ export function NotificationBell() {
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
+          <span className="absolute -top-0.5 -right-0.5 min-w-4.5 h-4.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -149,12 +155,12 @@ export function NotificationBell() {
                   className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${!n.read ? 'bg-emerald-50/30' : ''}`}
                   onClick={() => !n.read && markRead(n.id)}
                 >
-                  <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${getTypeColor(n.type)} ${!n.read ? 'ring-2 ring-offset-1 ring-current/20' : 'opacity-50'}`} />
+                  <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${getTypeColor(n.type)} ${!n.read ? 'ring-2 ring-offset-1 ring-current/20' : 'opacity-50'}`} />
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm ${!n.read ? 'font-semibold text-gray-800' : 'font-medium text-gray-600'}`}>{n.title}</p>
                     <p className="text-xs text-gray-500 truncate">{n.message}</p>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     <span className="text-[10px] text-gray-400">{timeAgo(n.createdAt)}</span>
                     {!n.read && (
                       <button

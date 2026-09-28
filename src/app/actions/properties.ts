@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/authGuard'
+import { notifyAdmins } from '@/app/actions/notifications'
 import crypto from 'crypto'
 
 export async function uploadImage(base64Data: string): Promise<string> {
@@ -163,6 +164,12 @@ export async function createProperty(formData: {
       },
     })
     revalidatePath('/properties')
+    // Notify admins that a new property was created
+    void notifyAdmins(
+      'New Property Listed',
+      `"${formData.title}" (${formData.location}) has been added to the listings.`,
+      'success'
+    )
     return { success: true, property }
   } catch (error) {
     console.error('Failed to create property:', error)
@@ -293,6 +300,13 @@ export async function updateProperty(
 
     revalidatePath('/properties')
     revalidatePath(`/properties/${id}`)
+    // Notify admins that a property was updated (images, details, etc.)
+    const updatedTitle = (property?.title as string) || id
+    void notifyAdmins(
+      'Property Updated',
+      `"${updatedTitle}" details or images have been updated.`,
+      'info'
+    )
     return { success: true, property }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Failed to update property'

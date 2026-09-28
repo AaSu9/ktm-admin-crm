@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Camera, UploadCloud, X, Image as ImageIcon, Eye } from 'lucide-react'
+import { Camera, UploadCloud, X, Image as ImageIcon, Eye, Star, ChevronLeft, ChevronRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface ImageUploadFieldProps {
   defaultImages?: string[]
@@ -65,11 +66,44 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
       console.error('Failed to process images:', err)
     } finally {
       setLoading(false)
+      // Reset input so same files can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
   const removeImage = (indexToRemove: number) => {
     setImages((prev) => prev.filter((_, index) => index !== indexToRemove))
+  }
+
+  /** Move image to index 0 — making it the cover photo shown on the website */
+  const setCoverImage = (idx: number) => {
+    if (idx === 0) return
+    setImages((prev) => {
+      const updated = [...prev]
+      const [chosen] = updated.splice(idx, 1)
+      updated.unshift(chosen)
+      return updated
+    })
+  }
+
+  /** Shift image one position to the left */
+  const moveLeft = (idx: number) => {
+    if (idx === 0) return
+    setImages((prev) => {
+      const updated = [...prev]
+      ;[updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]]
+      return updated
+    })
+  }
+
+  /** Shift image one position to the right */
+  const moveRight = (idx: number) => {
+    setImages((prev) => {
+      if (idx >= prev.length - 1) return prev
+      const updated = [...prev]
+      ;[updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]]
+      return updated
+    })
   }
 
   const triggerFileInput = () => {
@@ -84,11 +118,11 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
           Property Images ({images.length})
         </label>
         <span className="text-xs text-gray-400">
-          Supports all photo formats & any aspect ratio without cropping
+          Supports all photo formats &amp; any aspect ratio without cropping
         </span>
       </div>
 
-      {/* Hidden File Input supporting all standard and mobile image formats */}
+      {/* Hidden File Input — multiple selection enabled */}
       <input
         type="file"
         ref={fileInputRef}
@@ -98,7 +132,7 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
         className="hidden"
       />
 
-      {/* Drag & Drop / Click Zone */}
+      {/* Upload Zone */}
       <div
         onClick={triggerFileInput}
         className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-3xl p-6 bg-gray-50/50 hover:bg-emerald-50/10 hover:border-emerald-500 transition-all cursor-pointer group text-center"
@@ -111,12 +145,11 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
             <Camera className="h-6 w-6" />
           </div>
         </div>
-        
         <p className="text-sm font-bold text-gray-700 group-hover:text-emerald-700 transition-colors">
-          Upload Files or Take Photos
+          Upload Multiple Photos or Take Photos
         </p>
         <p className="text-xs text-gray-400 mt-1 max-w-sm">
-          Supports portrait (vertical), landscape (horizontal), square, or panoramic photos in full size without cropping.
+          Select multiple files at once. All orientations supported — no cropping.
         </p>
       </div>
 
@@ -127,73 +160,138 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
         </div>
       )}
 
-      {/* Uncropped Preview Grid */}
-      {images.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {images.map((img, idx) => (
-            <div 
-              key={idx} 
-              className="relative group aspect-4/3 rounded-2xl overflow-hidden border border-gray-200 bg-slate-950 flex items-center justify-center shadow-xs"
-            >
-              {/* Ambient backdrop */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={img}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover blur-md opacity-35 scale-110 pointer-events-none"
-              />
-              
-              {/* Uncropped full image */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={img}
-                alt={`preview-${idx}`}
-                className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-
-              {/* Index badge */}
-              <span className="absolute bottom-2 left-2 z-20 bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-                #{idx + 1}
-              </span>
-
-              {/* Actions Overlay */}
-              <div className="absolute top-2 right-2 z-20 flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setSelectedPreview(img)
-                  }}
-                  className="p-1.5 bg-black/60 hover:bg-black text-white rounded-full shadow-md transition-all active:scale-95"
-                  title="View full size"
-                >
-                  <Eye className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    removeImage(idx)
-                  }}
-                  className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md transition-all active:scale-95"
-                  title="Remove image"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
+      {/* Cover Photo Hint Banner */}
+      {images.length > 1 && (
+        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-2.5 text-xs text-amber-700">
+          <Star className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5 fill-amber-400" />
+          <span>
+            <strong>Cover Photo:</strong> The image with the gold{' '}
+            <span className="inline-flex items-center gap-0.5 bg-amber-400 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+              <Star className="h-2 w-2 fill-white" /> COVER
+            </span>{' '}
+            badge is shown as the card image on the website. Hover any photo and click{' '}
+            <strong>Set as Cover</strong> to change it. Use ← → arrows to reorder.
+          </span>
         </div>
       )}
 
-      {/* Full-size preview modal dialog */}
+      {/* Photo Grid */}
+      {images.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {images.map((img, idx) => {
+            const isCover = idx === 0
+            return (
+              <div
+                key={`${idx}-${img.slice(-20)}`}
+                className={cn(
+                  'relative group aspect-4/3 rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center transition-all',
+                  isCover
+                    ? 'ring-2 ring-amber-400 border-2 border-amber-400 shadow-md shadow-amber-200/60'
+                    : 'border border-gray-200 shadow-xs'
+                )}
+              >
+                {/* Ambient blurred backdrop */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover blur-md opacity-35 scale-110 pointer-events-none"
+                />
+
+                {/* Full uncropped image */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img}
+                  alt={`Property photo ${idx + 1}`}
+                  className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                />
+
+                {/* Cover crown badge */}
+                {isCover ? (
+                  <div className="absolute top-1.5 left-1.5 z-20 flex items-center gap-0.5 bg-amber-400 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md pointer-events-none">
+                    <Star className="h-2.5 w-2.5 fill-white shrink-0" />
+                    COVER
+                  </div>
+                ) : (
+                  <span className="absolute bottom-1.5 left-1.5 z-20 bg-black/70 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md pointer-events-none">
+                    #{idx + 1}
+                  </span>
+                )}
+
+                {/* Hover overlay */}
+                <div className="absolute inset-0 z-20 bg-black/0 group-hover:bg-black/40 transition-all opacity-0 group-hover:opacity-100 flex flex-col justify-between p-1.5">
+                  {/* Top-right: view + delete */}
+                  <div className="flex justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setSelectedPreview(img) }}
+                      className="p-1 bg-black/70 hover:bg-black text-white rounded-full shadow transition-all active:scale-95"
+                      title="View full size"
+                    >
+                      <Eye className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); removeImage(idx) }}
+                      className="p-1 bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition-all active:scale-95"
+                      title="Remove"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+
+                  {/* Bottom: set cover + reorder */}
+                  <div className="flex flex-col gap-1">
+                    {!isCover && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setCoverImage(idx) }}
+                        className="w-full flex items-center justify-center gap-0.5 bg-amber-500/90 hover:bg-amber-500 text-white text-[9px] font-bold py-1 px-1 rounded-lg shadow transition-all active:scale-95"
+                        title="Set as cover photo"
+                      >
+                        <Star className="h-2.5 w-2.5 fill-white shrink-0" />
+                        Set as Cover
+                      </button>
+                    )}
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); moveLeft(idx) }}
+                        disabled={idx === 0}
+                        className="flex-1 flex items-center justify-center bg-gray-700/80 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed text-white text-[9px] py-1 rounded-lg transition-all active:scale-95"
+                        title="Move left"
+                      >
+                        <ChevronLeft className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); moveRight(idx) }}
+                        disabled={idx === images.length - 1}
+                        className="flex-1 flex items-center justify-center bg-gray-700/80 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed text-white text-[9px] py-1 rounded-lg transition-all active:scale-95"
+                        title="Move right"
+                      >
+                        <ChevronRight className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Full-size preview modal */}
       {selectedPreview && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4"
           onClick={() => setSelectedPreview(null)}
         >
-          <div className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               type="button"
               onClick={() => setSelectedPreview(null)}
@@ -211,7 +309,7 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
         </div>
       )}
 
-      {/* Hidden input to pass data to Form Submit Action */}
+      {/* Hidden form input — images[0] is always the cover (website reads images[0]) */}
       <input
         type="hidden"
         name="uploaded_images"

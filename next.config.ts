@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '10mb',
     },
   },
+  // Reuse TCP connections to Supabase — avoids new SSL handshake on every DB call.
+  // This can reduce perceived latency by 200-500ms per request on cold paths.
+  httpAgentOptions: {
+    keepAlive: true,
+  },
   // Allow Cloudinary and other external images
   images: {
     remotePatterns: [

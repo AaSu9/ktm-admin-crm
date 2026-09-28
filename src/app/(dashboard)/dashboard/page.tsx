@@ -40,7 +40,15 @@ export default async function DashboardPage() {
   // ==========================================
   if (role === 'EDITOR') {
     let publishedBlogs = 0, draftBlogs = 0, featuredBlogs = 0, testimonialsCount = 0
-    let recentBlogs: Record<string, unknown>[] = []
+    interface BlogEntry {
+      id: string
+      title: string
+      createdAt: Date
+      published: boolean
+      isFeatured: boolean
+      author?: { name?: string | null } | null
+    }
+    let recentBlogs: BlogEntry[] = []
 
     try {
       const results = await Promise.all([

@@ -74,7 +74,7 @@ export async function replyToMessage(id: string, reply: string) {
       try {
         let nodemailerModule = null
         try {
-          // @ts-ignore
+          // @ts-expect-error -- nodemailer has no bundled types; installed via @types/nodemailer at runtime
           nodemailerModule = await import('nodemailer')
         } catch {
           console.warn('Nodemailer package not installed. Run: npm install nodemailer @types/nodemailer')
