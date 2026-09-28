@@ -69,11 +69,21 @@ export default async function PropertyDetailPage({ params: paramsPromise }: { pa
   let visits: PropertyVisit[] = []
   let dbError = false
 
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(propId)
+
   try {
-    property = await prisma.property.findUnique({
-      where: { id: propId },
-      include: { agent: true, visits: { include: { customer: true } } },
-    })
+    if (isUuid) {
+      property = await prisma.property.findUnique({
+        where: { id: propId },
+        include: { agent: true, visits: { include: { customer: true } } },
+      })
+    }
+    if (!property) {
+      property = await prisma.property.findUnique({
+        where: { property_id: propId },
+        include: { agent: true, visits: { include: { customer: true } } },
+      })
+    }
 
     if (!property && propId !== 'demo-id') {
       return notFound()
