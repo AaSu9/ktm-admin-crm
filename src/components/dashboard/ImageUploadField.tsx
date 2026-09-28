@@ -23,7 +23,7 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
           const canvas = document.createElement('canvas')
           let width = img.width
           let height = img.height
-          const maxDim = 2048
+          const maxDim = 1400
 
           if (width > maxDim || height > maxDim) {
             if (width > height) {
@@ -38,10 +38,22 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
           canvas.width = width
           canvas.height = height
           const ctx = canvas.getContext('2d')
-          ctx?.drawImage(img, 0, 0, width, height)
-          
-          const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
-          const compressed = canvas.toDataURL(mimeType, 0.85)
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true
+            ctx.imageSmoothingQuality = 'high'
+            ctx.drawImage(img, 0, 0, width, height)
+          }
+
+          // Always compress to JPEG (or WebP where supported) — PNG from canvas is uncompressed and can be 5MB+
+          let quality = 0.78
+          let compressed = canvas.toDataURL('image/jpeg', quality)
+
+          // If still over 500KB base64, reduce quality slightly to ensure safety
+          if (compressed.length > 700000) {
+            quality = 0.65
+            compressed = canvas.toDataURL('image/jpeg', quality)
+          }
+
           resolve(compressed)
         }
         img.onerror = () => resolve((event.target?.result as string) || '')

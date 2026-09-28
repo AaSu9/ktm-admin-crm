@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '10mb',
+      bodySizeLimit: '25mb',
     },
   },
   // Reuse TCP connections to Supabase — avoids new SSL handshake on every DB call.
