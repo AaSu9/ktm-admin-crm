@@ -14,6 +14,10 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
   const [selectedPreview, setSelectedPreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
+  // Max images to prevent payload explosion (base64 stored in DB when Cloudinary is not configured)
+  const MAX_IMAGES = 15
+  const MAX_BASE64_LENGTH = 250_000 // ~200KB per image
+
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve) => {
       const reader = new FileReader()
@@ -23,7 +27,8 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
           const canvas = document.createElement('canvas')
           let width = img.width
           let height = img.height
-          const maxDim = 1400
+          // Reduced from 1400 → 1024 to keep base64 small
+          const maxDim = 1024
 
           if (width > maxDim || height > maxDim) {
             if (width > height) {
@@ -44,14 +49,28 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
             ctx.drawImage(img, 0, 0, width, height)
           }
 
-          // Always compress to JPEG (or WebP where supported) — PNG from canvas is uncompressed and can be 5MB+
-          let quality = 0.78
-          let compressed = canvas.toDataURL('image/jpeg', quality)
+          // Always compress to JPEG — PNG from canvas is uncompressed and can be 5MB+
+          // Progressively reduce quality until under MAX_BASE64_LENGTH
+          const qualities = [0.7, 0.55, 0.4, 0.3]
+          let compressed = ''
+          for (const q of qualities) {
+            compressed = canvas.toDataURL('image/jpeg', q)
+            if (compressed.length <= MAX_BASE64_LENGTH) break
+          }
 
-          // If still over 500KB base64, reduce quality slightly to ensure safety
-          if (compressed.length > 700000) {
-            quality = 0.65
-            compressed = canvas.toDataURL('image/jpeg', quality)
+          // Last resort: scale down further if still too big
+          if (compressed.length > MAX_BASE64_LENGTH) {
+            const smallCanvas = document.createElement('canvas')
+            const scale = 0.5
+            smallCanvas.width = Math.round(width * scale)
+            smallCanvas.height = Math.round(height * scale)
+            const sCtx = smallCanvas.getContext('2d')
+            if (sCtx) {
+              sCtx.imageSmoothingEnabled = true
+              sCtx.imageSmoothingQuality = 'medium'
+              sCtx.drawImage(canvas, 0, 0, smallCanvas.width, smallCanvas.height)
+            }
+            compressed = smallCanvas.toDataURL('image/jpeg', 0.5)
           }
 
           resolve(compressed)
@@ -71,7 +90,18 @@ export default function ImageUploadField({ defaultImages = [] }: ImageUploadFiel
     setLoading(true)
     try {
       const fileList = Array.from(files)
-      const compressedResults = await Promise.all(fileList.map((f) => compressImage(f)))
+      // Enforce max images
+      const remaining = MAX_IMAGES - images.length
+      if (remaining <= 0) {
+        alert(`Maximum ${MAX_IMAGES} images allowed. Please remove some before adding more.`)
+        setLoading(false)
+        return
+      }
+      const filesToProcess = fileList.slice(0, remaining)
+      if (filesToProcess.length < fileList.length) {
+        alert(`Only ${remaining} more image(s) can be added (max ${MAX_IMAGES}). ${fileList.length - remaining} file(s) were skipped.`)
+      }
+      const compressedResults = await Promise.all(filesToProcess.map((f) => compressImage(f)))
       const validImages = compressedResults.filter(Boolean)
       setImages((prev) => [...prev, ...validImages])
     } catch (err) {

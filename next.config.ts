@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
   httpAgentOptions: {
     keepAlive: true,
   },
-  // Allow Cloudinary and other external images
+  // Allow Supabase Storage and other external images
   images: {
     remotePatterns: [
       {

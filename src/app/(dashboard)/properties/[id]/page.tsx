@@ -170,6 +170,7 @@ export default async function PropertyDetailPage({ params: paramsPromise }: { pa
 
   async function handleDeleteAction() {
     'use server'
+    if (!property?.id) return
     await deleteProperty(property.id)
     redirect('/properties')
   }

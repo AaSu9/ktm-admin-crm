@@ -4,58 +4,14 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/authGuard'
 import { notifyAdmins } from '@/app/actions/notifications'
-import crypto from 'crypto'
+import { uploadToSupabaseStorage } from '@/lib/supabaseStorage'
 
+/**
+ * Upload a base64 image to Supabase Storage and return a public URL.
+ * Falls back to returning raw base64 if storage is not configured.
+ */
 export async function uploadImage(base64Data: string): Promise<string> {
-  try {
-    if (!base64Data || typeof base64Data !== 'string' || !base64Data.startsWith('data:image')) {
-      return base64Data
-    }
-
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-    const apiKey = process.env.CLOUDINARY_API_KEY
-    const apiSecret = process.env.CLOUDINARY_API_SECRET
-
-    if (
-      cloudName && 
-      apiKey && 
-      apiSecret && 
-      apiKey !== 'your_api_key' && 
-      cloudName !== 'your_cloud_name'
-    ) {
-      const timestamp = Math.round(new Date().getTime() / 1000)
-      const signature = crypto
-        .createHash('sha1')
-        .update(`folder=ktm_properties&timestamp=${timestamp}${apiSecret}`)
-        .digest('hex')
-
-      const formData = new FormData()
-      formData.append('file', base64Data)
-      formData.append('api_key', apiKey)
-      formData.append('timestamp', timestamp.toString())
-      formData.append('folder', 'ktm_properties')
-      formData.append('signature', signature)
-
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        if (data.secure_url) {
-          return data.secure_url
-        }
-      } else {
-        const errorText = await response.text()
-        console.error('Cloudinary API upload failed:', errorText)
-      }
-    }
-    return base64Data
-  } catch (error) {
-    console.error('Image upload server error:', error)
-    return base64Data
-  }
+  return uploadToSupabaseStorage(base64Data)
 }
 
 

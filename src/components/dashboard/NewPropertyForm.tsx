@@ -79,6 +79,15 @@ export default function NewPropertyForm({ agents, dbError }: NewPropertyFormProp
       const features = featuresStr ? featuresStr.split(',').map((f) => f.trim()).filter(Boolean) : []
       
       const base64Images = uploadedImagesStr ? JSON.parse(uploadedImagesStr) : []
+
+      // Safety check: prevent payload explosion when Cloudinary is not configured
+      const totalBase64Size = base64Images.reduce((sum: number, img: string) => sum + (typeof img === 'string' ? img.length : 0), 0)
+      if (totalBase64Size > 20_000_000) { // ~15MB of actual data
+        toast.error('Images are too large! Please remove some photos or use smaller images.', { duration: 5000 })
+        setIsSubmitting(false)
+        return
+      }
+
       const images: string[] = []
       for (const base64 of base64Images) {
         try {
