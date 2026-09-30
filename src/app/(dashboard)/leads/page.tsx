@@ -38,7 +38,24 @@ export default async function LeadsPage({ searchParams: searchParamsPromise }: {
     leads = await prisma.lead.findMany({
       where,
       orderBy: { created_at: 'desc' },
-      include: { property: true, agent: true },
+      include: {
+        property: {
+          select: {
+            id: true,
+            title: true,
+            location: true,
+            price: true,
+            property_id: true,
+          },
+        },
+        agent: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     })
   } catch (error) {
     console.error('DB Query failed in Leads Page:', error)

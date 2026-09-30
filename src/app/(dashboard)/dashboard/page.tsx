@@ -221,7 +221,22 @@ export default async function DashboardPage() {
           where: { agentId: userId }, 
           take: 5, 
           orderBy: { created_at: 'desc' }, 
-          include: { property: true, agent: true } 
+          include: {
+            property: {
+              select: {
+                id: true,
+                title: true,
+                location: true,
+                price: true,
+              },
+            },
+            agent: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
         }),
         prisma.lead.groupBy({ by: ['status'], where: { agentId: userId }, _count: { status: true } }),
         prisma.property.groupBy({ by: ['property_type'], where: { agentId: userId }, _count: { property_type: true } }),
@@ -323,7 +338,26 @@ export default async function DashboardPage() {
       prisma.property.count({ where: { status: 'SOLD' } }),
       prisma.lead.count(),
       prisma.visit.count({ where: { status: 'SCHEDULED' } }),
-      prisma.lead.findMany({ take: 5, orderBy: { created_at: 'desc' }, include: { property: true, agent: true } }),
+      prisma.lead.findMany({
+        take: 5,
+        orderBy: { created_at: 'desc' },
+        include: {
+          property: {
+            select: {
+              id: true,
+              title: true,
+              location: true,
+              price: true,
+            },
+          },
+          agent: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      }),
       prisma.message.findMany({ take: 5, orderBy: { createdAt: 'desc' } }),
       prisma.lead.groupBy({ by: ['status'], _count: { status: true } }),
       prisma.property.groupBy({ by: ['property_type'], _count: { property_type: true } }),

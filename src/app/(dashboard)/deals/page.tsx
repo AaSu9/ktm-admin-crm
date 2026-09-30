@@ -19,24 +19,68 @@ export default async function DealsPage() {
   let dbError = false
 
   try {
-    deals = await prisma.deal.findMany({
-      orderBy: { closingDate: 'desc' },
-      include: { property: true, agent: true, buyer: true, seller: true }
-    })
-
-    properties = await prisma.property.findMany({
-      where: { status: { in: ['AVAILABLE', 'PENDING'] } },
-      orderBy: { title: 'asc' }
-    })
-
-    customers = await prisma.customer.findMany({
-      orderBy: { name: 'asc' }
-    })
-
-    agents = await prisma.user.findMany({
-      where: { role: 'AGENT', isActive: true },
-      orderBy: { name: 'asc' }
-    })
+    const results = await Promise.all([
+      prisma.deal.findMany({
+        orderBy: { closingDate: 'desc' },
+        include: {
+          property: {
+            select: {
+              id: true,
+              title: true,
+              location: true,
+              price: true,
+            },
+          },
+          agent: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          buyer: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+            },
+          },
+          seller: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+            },
+          },
+        },
+      }),
+      prisma.property.findMany({
+        where: { status: { in: ['AVAILABLE', 'PENDING'] } },
+        orderBy: { title: 'asc' },
+        select: {
+          id: true,
+          title: true,
+          location: true,
+          price: true,
+        },
+      }),
+      prisma.customer.findMany({
+        orderBy: { name: 'asc' },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+        },
+      }),
+      prisma.user.findMany({
+        where: { role: 'AGENT', isActive: true },
+        orderBy: { name: 'asc' },
+        select: {
+          id: true,
+          name: true,
+        },
+      }),
+    ])
+    ;[deals, properties, customers, agents] = results
   } catch (error) {
     console.error("DB Query failed in Deals Page, showing mock fallback:", error)
     dbError = true

@@ -26,7 +26,10 @@ export default async function CustomersPage({ searchParams: searchParamsPromise 
     customers = await prisma.customer.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: { leads: true, visits: true },
+      include: {
+        leads: { select: { id: true } },
+        visits: { select: { id: true } },
+      },
     })
   } catch (error) {
     console.error('DB Query failed in Customers Page:', error)

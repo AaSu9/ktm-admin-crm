@@ -14,6 +14,18 @@ export default async function MessagesPage() {
   try {
     const leads = await prisma.lead.findMany({
       orderBy: { created_at: 'desc' },
+      select: {
+        id: true,
+        full_name: true,
+        email: true,
+        phone: true,
+        inquiry_type: true,
+        property_interest: true,
+        message: true,
+        notes: true,
+        status: true,
+        created_at: true,
+      },
     })
     messages = leads.map((lead) => ({
       id: lead.id,

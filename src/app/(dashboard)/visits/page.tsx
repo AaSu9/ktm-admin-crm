@@ -17,7 +17,29 @@ export default async function VisitsPage() {
   try {
     visits = await prisma.visit.findMany({
       orderBy: { date: 'asc' },
-      include: { customer: true, property: true, agent: true },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+          },
+        },
+        property: {
+          select: {
+            id: true,
+            title: true,
+            location: true,
+            price: true,
+          },
+        },
+        agent: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     })
   } catch (error) {
     console.error("DB Query failed in Visits Page, showing fallback data:", error)

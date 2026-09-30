@@ -43,7 +43,30 @@ export default async function PropertiesPage({
 
   try {
     const results = await Promise.all([
-      prisma.property.findMany({ where, skip, take: limit, orderBy: { created_at: 'desc' }, include: { agent: true } }),
+      prisma.property.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { created_at: 'desc' },
+        select: {
+          id: true,
+          property_id: true,
+          title: true,
+          location: true,
+          price: true,
+          status: true,
+          property_type: true,
+          category: true,
+          images: true,
+          created_at: true,
+          agent: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      }),
       prisma.property.count({ where }),
     ])
     properties = results[0] as unknown as Record<string, unknown>[]
