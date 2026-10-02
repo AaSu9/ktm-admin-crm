@@ -11,7 +11,6 @@ export async function getNotifications() {
 
     const userId = (session.user as { id?: string }).id
     if (!userId || userId === 'demo-admin-id') {
-      // Return demo notifications for demo mode
       return {
         success: true,
         notifications: [
@@ -43,10 +42,9 @@ export async function markNotificationRead(id: string) {
     const { userId } = await requireAuth()
     if (id.startsWith('demo-')) return { success: true }
 
-    // Add ownership check to prevent marking others' notifications as read
     const notification = await prisma.notification.findUnique({ where: { id } })
     if (notification?.userId !== userId) {
-         throw new Error('Forbidden')
+      throw new Error('Forbidden')
     }
 
     await prisma.notification.update({
@@ -84,6 +82,7 @@ export async function createNotification(data: {
   title: string
   message: string
   type: 'info' | 'success' | 'warning' | 'error'
+  link?: string
 }) {
   try {
     if (data.userId === 'demo-admin-id') return { success: true }
@@ -94,6 +93,7 @@ export async function createNotification(data: {
         title: data.title,
         message: data.message,
         type: data.type,
+        link: data.link || null,
       },
     })
     return { success: true, notification }
@@ -104,7 +104,7 @@ export async function createNotification(data: {
 }
 
 // Helper: notify all admins (used by system events)
-export async function notifyAdmins(title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') {
+export async function notifyAdmins(title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info', link?: string) {
   try {
     const admins = await prisma.user.findMany({
       where: { role: { in: ['SUPER_ADMIN', 'ADMIN'] }, isActive: true },
@@ -113,7 +113,7 @@ export async function notifyAdmins(title: string, message: string, type: 'info' 
 
     await Promise.all(
       admins.map((admin) =>
-        createNotification({ userId: admin.id, title, message, type })
+        createNotification({ userId: admin.id, title, message, type, link })
       )
     )
     return { success: true }

@@ -22,6 +22,9 @@ import {
   X,
   Sparkles,
   DollarSign,
+  CheckSquare,
+  Award,
+  ShieldAlert,
 } from 'lucide-react'
 
 import { useSession } from 'next-auth/react'
@@ -29,17 +32,20 @@ import { useSession } from 'next-auth/react'
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'EDITOR'] },
   { href: '/properties', label: 'Properties', icon: Building2, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/visits', label: 'Visits & Calendar', icon: CalendarCheck, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/deals', label: 'Deals & Commission', icon: DollarSign, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/tasks', label: 'Tasks & Verification', icon: CheckSquare, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/performance', label: 'Leaderboard & Stars', icon: Award, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
+  { href: '/customers', label: 'Customers', icon: UserRound, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
   { href: '/leads', label: 'Leads', icon: Users2, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
   { href: '/matches', label: 'Auto Matching', icon: Sparkles, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
-  { href: '/customers', label: 'Customers', icon: UserRound, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
-  { href: '/visits', label: 'Visits', icon: CalendarCheck, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
-  { href: '/deals', label: 'Deals & Commission', icon: DollarSign, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
-  { href: '/agents', label: 'Agents & Roles', icon: UserCog, roles: ['SUPER_ADMIN'] },
+  { href: '/agents', label: 'Team & Roles', icon: UserCog, roles: ['SUPER_ADMIN'] },
+  { href: '/audit-logs', label: 'Audit Logs', icon: ShieldAlert, roles: ['SUPER_ADMIN'] },
   { href: '/messages', label: 'Messages', icon: MessageSquare, roles: ['SUPER_ADMIN', 'ADMIN'] },
   { href: '/analytics', label: 'Analytics', icon: BarChart3, roles: ['SUPER_ADMIN', 'ADMIN'] },
   { href: '/content', label: 'Content CMS', icon: FileEdit, roles: ['SUPER_ADMIN', 'ADMIN', 'EDITOR'] },
   { href: '/blogs', label: 'Blogs & News', icon: FileText, roles: ['SUPER_ADMIN', 'ADMIN', 'EDITOR'] },
-  { href: '/settings', label: 'Settings', icon: Settings, roles: ['SUPER_ADMIN'] },
+  { href: '/settings', label: 'Settings', icon: Settings, roles: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] },
 ]
 
 interface SidebarProps {
@@ -54,6 +60,11 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
   const userRole = (session?.user as { role?: string })?.role || 'SUPER_ADMIN'
 
   const visibleNavItems = navItems.filter(item => item.roles.includes(userRole))
+
+  const handleLogout = async () => {
+    // End session completely, clear state and redirect to login
+    await signOut({ callbackUrl: '/login', redirect: true })
+  }
 
   return (
     <aside
@@ -85,7 +96,7 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
         {visibleNavItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          const isActive = pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== '/dashboard')
           return (
             <Link
               key={item.href}
@@ -95,7 +106,7 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
               className={cn(
                 'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-emerald-500/20 text-emerald-400 shadow-sm'
+                  ? 'bg-emerald-500/20 text-emerald-400 shadow-xs'
                   : 'text-white/60 hover:bg-white/5 hover:text-white',
                 collapsed && 'justify-center'
               )}
@@ -113,22 +124,22 @@ export function Sidebar({ collapsed, mobileOpen, onMobileClose }: SidebarProps) 
         })}
       </nav>
 
-      {/* Logout */}
+      {/* Logout / End Session */}
       <div className="p-2 border-t border-white/10 flex flex-col gap-2">
         <button
-          onClick={() => signOut({ callbackUrl: '/login' })}
+          onClick={handleLogout}
           className={cn(
-            'flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm font-medium text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all',
+            'flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/15 transition-all cursor-pointer',
             collapsed && 'justify-center'
           )}
-          title={collapsed ? 'Logout' : undefined}
+          title={collapsed ? 'End Session / Logout' : undefined}
         >
           <LogOut className="h-5 w-5 shrink-0" />
-          {!collapsed && <span>Logout</span>}
+          {!collapsed && <span>End Session / Logout</span>}
         </button>
         {!collapsed && (
           <div className="text-[10px] text-center text-white/30 pt-1 select-none font-medium">
-            AAN creator💚
+            KTM RealEstate CRM
           </div>
         )}
       </div>

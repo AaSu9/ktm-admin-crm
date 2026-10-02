@@ -64,9 +64,9 @@ export default async function PropertyDetailPage({ params: paramsPromise }: { pa
   if (!session) redirect('/login')
 
   const propId = params.id
-  let property: PropertyDetail | null = null
-  let matchedLeads: MatchedLead[] = []
-  let visits: PropertyVisit[] = []
+  let property: any = null
+  let matchedLeads: any[] = []
+  let visits: any[] = []
   let dbError = false
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(propId)
@@ -102,7 +102,7 @@ export default async function PropertyDetailPage({ params: paramsPromise }: { pa
         take: 5,
       })
 
-      visits = property.visits
+      visits = property.visits || []
     }
   } catch (error) {
     console.error("DB Query failed in Property Detail Page, showing mock fallback:", error)
@@ -166,6 +166,10 @@ export default async function PropertyDetailPage({ params: paramsPromise }: { pa
         notes: 'Client wants to inspect building safety and garage space.'
       }
     ]
+  }
+
+  if (!property) {
+    return notFound()
   }
 
   async function handleDeleteAction() {

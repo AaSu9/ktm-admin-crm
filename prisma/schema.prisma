@@ -34,6 +34,7 @@ enum LeadStatus {
 }
 
 enum Priority {
+  URGENT
   HIGH
   MEDIUM
   LOW
@@ -41,8 +42,11 @@ enum Priority {
 
 enum VisitStatus {
   SCHEDULED
+  CONFIRMED
   COMPLETED
   CANCELLED
+  RESCHEDULED
+  NO_SHOW
 }
 
 enum MessageStatus {
@@ -69,65 +73,86 @@ model User {
   isActive       Boolean        @default(true)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
+
+  // Google Calendar Integration
+  googleAccessToken  String?
+  googleRefreshToken String?
+  googleTokenExpiry   DateTime?
+  googleCalendarId   String?
+  googleEmail        String?
+  isGoogleConnected  Boolean        @default(false)
+
+  // Performance Points & Stars
+  stars              Int            @default(0)
+  performancePoints  Int            @default(0)
+
+  // Relations
   properties     Property[]     @relation("AgentProperties")
   leads          Lead[]         @relation("AgentLeads")
   visits         Visit[]        @relation("AgentVisits")
   notifications  Notification[]
   deals          Deal[]         @relation("AgentDeals")
   blogs          Blog[]         @relation("AuthorBlogs")
+  assignedTasks  Task[]         @relation("AssignedTasks")
+  createdTasks   Task[]         @relation("CreatedTasks")
+  verifiedTasks  Task[]         @relation("VerifiedTasks")
+  commissions    Commission[]   @relation("AgentCommissions")
+  auditLogs      AuditLog[]     @relation("UserAuditLogs")
 }
 
 model Property {
-  id                 String          @id @default(uuid()) @db.Uuid
-  property_id        String          @unique
-  title              String
-  description        String?
-  location           String
-  price              Float
-  category           String          // sale | rent
-  property_type      String          // apartment | house | land | commercial
-  bedrooms           Int?
-  bathrooms          Int?
-  area_sqft          Float?
-  images             String[]
-  status             String?         @default("AVAILABLE")
-  is_featured        Boolean?        @default(false)
-  is_hot_deal        Boolean?        @default(false)
+  id                  String          @id @default(uuid()) @db.Uuid
+  property_id         String          @unique
+  title               String
+  description         String?
+  location            String
+  price               Float
+  category            String          // sale | rent
+  property_type       String          // apartment | house | land | commercial
+  bedrooms            Int?
+  bathrooms           Int?
+  area_sqft           Float?
+  images              String[]
+  status              String?         @default("AVAILABLE")
+  is_featured         Boolean?        @default(false)
+  is_hot_deal         Boolean?        @default(false)
   discount_percentage Float?         @default(0)
-  features           String[]
-  video_url          String?
-  youtube_url        String?
-  tiktok_url         String?
-  latitude           Float?
-  longitude          Float?
-  map_url            String?
-  pillarSize         String?
-  tankCapacity       String?
-  roadSize           String?
-  roadType           String?
-  landArea           String?
-  livingRooms        Int?
-  kitchens           Int?
-  faceDirection      String?
-  parking            String?
-  totalFloors        Float?
-  yearBuilt          Int?
-  furnishing         String?
-  negotiable         Boolean?        @default(true)
-  cityArea           String?
-  municipality       String?
-  wardNumber         Int?
-  dimension          String?
-  created_at         DateTime        @default(now())
-  updated_at         DateTime        @updatedAt
+  features            String[]
+  video_url           String?
+  youtube_url         String?
+  tiktok_url          String?
+  latitude            Float?
+  longitude           Float?
+  map_url             String?
+  pillarSize          String?
+  tankCapacity        String?
+  roadSize            String?
+  roadType            String?
+  landArea            String?
+  livingRooms         Int?
+  kitchens            Int?
+  faceDirection       String?
+  parking             String?
+  totalFloors         Float?
+  yearBuilt           Int?
+  furnishing          String?
+  negotiable          Boolean?        @default(true)
+  cityArea            String?
+  municipality        String?
+  wardNumber          Int?
+  dimension           String?
+  created_at          DateTime        @default(now())
+  updated_at          DateTime        @updatedAt
 
-  // CRM Relationships (These won't affect the live Vite site, just for CRM)
-  agentId            String?         @db.Uuid
-  agent              User?           @relation("AgentProperties", fields: [agentId], references: [id])
-  views              Int             @default(0) // CRM only tracker
-  leads              Lead[]
-  visits             Visit[]
-  deals              Deal[]
+  // CRM Relationships
+  agentId             String?         @db.Uuid
+  agent               User?           @relation("AgentProperties", fields: [agentId], references: [id])
+  views               Int             @default(0) // CRM only tracker
+  leads               Lead[]
+  visits              Visit[]
+  deals               Deal[]
+  tasks               Task[]          @relation("PropertyTasks")
+  commissions         Commission[]    @relation("PropertyCommissions")
 
   @@index([status])
   @@index([category])
@@ -147,7 +172,7 @@ model Lead {
   status            String?     @default("NEW")
   created_at        DateTime    @default(now())
 
-  // CRM Relationships & CRM specific fields (added to existing table safely)
+  // CRM Relationships
   property_id       String?     @db.Uuid
   property          Property?   @relation(fields: [property_id], references: [id])
   
@@ -168,36 +193,53 @@ model Lead {
 }
 
 model Customer {
-  id               String    @id @default(uuid()) @db.Uuid
+  id               String       @id @default(uuid()) @db.Uuid
   name             String
   phone            String
-  email            String?   @unique
+  email            String?      @unique
   address          String?
   notes            String?
   savedProperties  String[]
+  source           String?      @default("DIRECT")
   leads            Lead[]
   visits           Visit[]
-  type             String    @default("BUYER") // BUYER | SELLER | TENANT
-  buyerDeals       Deal[]    @relation("BuyerDeals")
-  sellerDeals      Deal[]    @relation("SellerDeals")
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  type             String       @default("BUYER") // BUYER | SELLER | TENANT
+  buyerDeals       Deal[]       @relation("BuyerDeals")
+  sellerDeals      Deal[]       @relation("SellerDeals")
+  tasks            Task[]       @relation("CustomerTasks")
+  commissions      Commission[] @relation("CustomerCommissions")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 }
 
 model Visit {
-  id          String      @id @default(uuid()) @db.Uuid
-  customerId  String      @db.Uuid
-  customer    Customer    @relation(fields: [customerId], references: [id])
-  propertyId  String      @db.Uuid
-  property    Property    @relation(fields: [propertyId], references: [id])
-  agentId     String?     @db.Uuid
-  agent       User?       @relation("AgentVisits", fields: [agentId], references: [id])
-  date        DateTime
-  time        String
-  status      VisitStatus @default(SCHEDULED)
-  notes       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                   String       @id @default(uuid()) @db.Uuid
+  customerId           String       @db.Uuid
+  customer             Customer     @relation(fields: [customerId], references: [id])
+  propertyId           String       @db.Uuid
+  property             Property     @relation(fields: [propertyId], references: [id])
+  agentId              String?      @db.Uuid
+  agent                User?        @relation("AgentVisits", fields: [agentId], references: [id])
+  date                 DateTime
+  time                 String       // Start time, e.g. "10:00 AM"
+  endTime              String?      // End time, e.g. "11:00 AM"
+  visitType            String?      @default("Site Walkthrough") // Site Walkthrough | Virtual Tour | Inspection | Final Review
+  location             String?
+  purpose              String?
+  status               VisitStatus  @default(SCHEDULED)
+  notes                String?
+  
+  // Google Calendar Integration
+  googleCalendarEventId String?
+  googleCalendarId      String?
+  googleSyncStatus      String?     @default("NOT_CONNECTED") // SYNCED | FAILED | PENDING | NOT_CONNECTED
+  googleSyncError       String?
+
+  deals                Deal[]       @relation("VisitDeals")
+  tasks                Task[]       @relation("VisitTasks")
+
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
   @@index([status])
   @@index([date])
@@ -226,9 +268,13 @@ model Notification {
   message   String
   type      String   // info | success | warning | error
   read      Boolean  @default(false)
+  link      String?
   userId    String   @db.Uuid
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
 }
 
 model Content {
@@ -243,26 +289,155 @@ model Content {
 }
 
 model Deal {
-  id             String   @id @default(uuid()) @db.Uuid
-  title          String
-  propertyId     String   @db.Uuid
-  property       Property @relation(fields: [propertyId], references: [id])
-  buyerId        String?  @db.Uuid
-  buyer          Customer? @relation("BuyerDeals", fields: [buyerId], references: [id])
-  sellerId       String?  @db.Uuid
-  seller         Customer? @relation("SellerDeals", fields: [sellerId], references: [id])
-  agentId        String   @db.Uuid
-  agent          User     @relation("AgentDeals", fields: [agentId], references: [id])
-  dealValue      Float
-  commissionRate Float    // percentage, e.g. 3.0
-  commissionEarned Float  // dealValue * (commissionRate / 100)
-  status         String   // PENDING | PAID | CANCELLED
-  closingDate    DateTime
-  notes          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String       @id @default(uuid()) @db.Uuid
+  title             String
+  propertyId        String       @db.Uuid
+  property          Property     @relation(fields: [propertyId], references: [id])
+  buyerId           String?      @db.Uuid
+  buyer             Customer?    @relation("BuyerDeals", fields: [buyerId], references: [id])
+  sellerId          String?      @db.Uuid
+  seller            Customer?    @relation("SellerDeals", fields: [sellerId], references: [id])
+  agentId           String       @db.Uuid
+  agent             User         @relation("AgentDeals", fields: [agentId], references: [id])
+  visitId           String?      @db.Uuid
+  visit             Visit?       @relation("VisitDeals", fields: [visitId], references: [id])
+  
+  // Financial breakdown
+  dealValue         Float        // Property sale price
+  propertySalePrice Float?
+  discount          Float?       @default(0)
+  finalPrice        Float?       // dealValue - discount
+  paymentStatus     String?      @default("PENDING") // PENDING | PARTIAL | PAID
+  amountPaid        Float?       @default(0)
+  remainingAmount   Float?       // finalPrice - amountPaid
+  
+  // Commission settings for deal
+  commissionRate    Float        // percentage, e.g. 2.5
+  commissionEarned  Float        // finalPrice * (commissionRate / 100)
+  
+  // Pipeline status: INTERESTED | NEGOTIATION | OFFER_SUBMITTED | AGREEMENT | SOLD | COMPLETED | CANCELLED
+  status            String       @default("INTERESTED")
+  dealStatus        String?      @default("INTERESTED")
+  
+  saleDate          DateTime?
+  closingDate       DateTime
+  notes             String?
+  
+  commissions       Commission[] @relation("DealCommissions")
+  tasks             Task[]       @relation("DealTasks")
 
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([status])
+  @@index([agentId])
+  @@index([propertyId])
   @@map("deals")
+}
+
+model Commission {
+  id               String    @id @default(uuid()) @db.Uuid
+  dealId           String    @db.Uuid
+  deal             Deal      @relation("DealCommissions", fields: [dealId], references: [id], onDelete: Cascade)
+  agentId          String    @db.Uuid
+  agent            User      @relation("AgentCommissions", fields: [agentId], references: [id])
+  propertyId       String?   @db.Uuid
+  property         Property? @relation("PropertyCommissions", fields: [propertyId], references: [id])
+  customerId       String?   @db.Uuid
+  customer         Customer? @relation("CustomerCommissions", fields: [customerId], references: [id])
+  
+  saleValue        Float
+  commissionRate   Float     // percentage
+  commissionAmount Float     // calculated NPR
+  status           String    @default("PENDING") // PENDING | APPROVED | PARTIALLY_PAID | PAID | CANCELLED
+  paidAmount       Float     @default(0)
+  paidAt           DateTime?
+  notes            String?
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([status])
+  @@index([agentId])
+  @@index([dealId])
+  @@map("commissions")
+}
+
+model Task {
+  id              String    @id @default(uuid()) @db.Uuid
+  title           String
+  description     String?
+  assignedToId    String    @db.Uuid
+  assignedTo      User      @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdById     String    @db.Uuid
+  createdBy       User      @relation("CreatedTasks", fields: [createdById], references: [id])
+  assignedRole    String?   // AGENT | ADMIN | ALL
+  
+  customerId      String?   @db.Uuid
+  customer        Customer? @relation("CustomerTasks", fields: [customerId], references: [id])
+  propertyId      String?   @db.Uuid
+  property        Property? @relation("PropertyTasks", fields: [propertyId], references: [id])
+  dealId          String?   @db.Uuid
+  deal            Deal?     @relation("DealTasks", fields: [dealId], references: [id])
+  visitId         String?   @db.Uuid
+  visit           Visit?    @relation("VisitTasks", fields: [visitId], references: [id])
+  
+  priority        String    @default("MEDIUM") // LOW | MEDIUM | HIGH | URGENT
+  status          String    @default("PENDING") // PENDING | IN_PROGRESS | COMPLETED | VERIFIED | NEEDS_REVISION
+  
+  dueDate         DateTime
+  dueTime         String?   // e.g. "02:00 PM"
+  attachmentUrl   String?
+  notes           String?
+  
+  completedAt     DateTime?
+  verifiedAt      DateTime?
+  verifiedById    String?   @db.Uuid
+  verifiedBy      User?     @relation("VerifiedTasks", fields: [verifiedById], references: [id])
+  rejectionReason String?
+  
+  starsAwarded    Int       @default(0)
+  pointsAwarded   Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+model PerformanceSetting {
+  id                    Int      @id @default(1)
+  normalTaskPoints      Int      @default(1)
+  highTaskPoints        Int      @default(2)
+  urgentTaskPoints      Int      @default(3)
+  dealClosePoints       Int      @default(5)
+  saleClosePoints       Int      @default(10)
+  defaultCommissionRate Float    @default(2.5)
+  updatedAt             DateTime @updatedAt
+
+  @@map("performance_settings")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String?  @db.Uuid
+  user        User?    @relation("UserAuditLogs", fields: [userId], references: [id])
+  userName    String?
+  userRole    String?
+  action      String   // e.g. "CREATE_VISIT", "UPDATE_VISIT", "CREATE_DEAL", "MARK_SOLD", "CREATE_TASK", "COMPLETE_TASK", "VERIFY_TASK", "REJECT_TASK", "APPROVE_COMMISSION"
+  entityType  String   // "VISIT" | "DEAL" | "TASK" | "PROPERTY" | "COMMISSION" | "CUSTOMER" | "USER" | "SESSION" | "GOOGLE_CALENDAR"
+  entityId    String?
+  description String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 model Stat {

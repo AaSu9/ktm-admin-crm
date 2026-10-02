@@ -52,7 +52,7 @@ export default async function CustomersPage({ searchParams: searchParamsPromise 
 
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
         <form className="flex flex-wrap gap-3">
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-50">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input name="search" defaultValue={searchParams.search} placeholder="Search customers..."
               className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50" />
@@ -78,7 +78,7 @@ export default async function CustomersPage({ searchParams: searchParamsPromise 
           <Link key={customer.id} href={`/customers/${customer.id}`}
             className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md hover:border-emerald-200 transition-all group">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-lg">
+              <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-lg">
                 {customer.name.charAt(0)}
               </div>
               <div className="min-w-0">

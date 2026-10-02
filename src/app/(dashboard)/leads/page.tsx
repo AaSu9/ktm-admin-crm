@@ -89,7 +89,7 @@ export default async function LeadsPage({ searchParams: searchParamsPromise }: {
       {/* Search */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
         <form className="flex flex-wrap gap-3">
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-50">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input name="search" defaultValue={searchParams.search} placeholder="Search leads by name, email, phone..."
               className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50" />
@@ -120,7 +120,7 @@ export default async function LeadsPage({ searchParams: searchParamsPromise }: {
           {PIPELINE_STAGES.map((stage) => {
             const stageLeads = leads.filter((l) => l.status === stage.id)
             return (
-              <div key={stage.id} className="flex-shrink-0 w-64 bg-gray-100/70 rounded-2xl p-3">
+              <div key={stage.id} className="shrink-0 w-64 bg-gray-100/70 rounded-2xl p-3">
                 <div className="flex items-center gap-2 mb-3">
                   <div className={cn('w-2.5 h-2.5 rounded-full', stage.color)} />
                   <h3 className="text-sm font-semibold text-gray-700">{stage.label}</h3>
@@ -173,7 +173,7 @@ export default async function LeadsPage({ searchParams: searchParamsPromise }: {
                 <tr key={lead.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">
                         {lead.full_name?.charAt(0)}
                       </div>
                       <div>
@@ -188,7 +188,7 @@ export default async function LeadsPage({ searchParams: searchParamsPromise }: {
                       {lead.email && <div className="flex items-center gap-1 text-xs text-gray-400"><Mail className="h-3 w-3" />{lead.email}</div>}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell max-w-[150px] truncate">{lead.property?.title || '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell max-w-37.5 truncate">{lead.property?.title || '—'}</td>
                   <td className="px-4 py-3">
                     <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', getStatusColor(lead.status || 'NEW'))}>
                       {(lead.status || 'NEW').replace(/_/g, ' ')}
