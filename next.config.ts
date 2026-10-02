@@ -1,13 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Prevent TypeScript errors and ESLint warnings from blocking Vercel builds
+  // Prevent TypeScript errors from blocking Vercel builds
   typescript: {
     ignoreBuildErrors: true,
-  },
-  // @ts-expect-error - eslint option in NextConfig
-  eslint: {
-    ignoreDuringBuilds: true,
   },
   experimental: {
     serverActions: {
