@@ -3,7 +3,8 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/authGuard'
-import { notifyAdmins } from '@/app/actions/notifications'
+import { notifyAdmins, createNotification } from '@/app/actions/notifications'
+import { logAudit } from '@/lib/audit'
 import { uploadToSupabaseStorage } from '@/lib/supabaseStorage'
 
 /**
@@ -270,12 +271,40 @@ export async function updateProperty(
     } catch {
       // Ignore revalidate error
     }
+
+    const authUser = await requireAuth().catch(() => null)
+
+    // If property status changed to SOLD, properly notify assigned agent and write audit log
+    if (formData.status === 'SOLD' && property) {
+      const assignedAgentId = (property.agentId as string) || (formData.agentId as string)
+      if (assignedAgentId) {
+        void createNotification({
+          userId: assignedAgentId,
+          title: 'Property Status: SOLD',
+          message: `Property "${property.title || id}" has been marked as SOLD. Please check your deals, commissions, and upcoming appointments.`,
+          type: 'success',
+          link: `/properties/${property.id || id}`,
+        }).catch(() => {})
+      }
+      if (authUser) {
+        void logAudit({
+          userId: authUser.userId,
+          userName: authUser.name,
+          userRole: authUser.role,
+          action: 'MARK_PROPERTY_SOLD',
+          entityType: 'PROPERTY',
+          entityId: (property.id as string) || id,
+          description: `Property "${property.title || id}" was marked as SOLD by ${authUser.name}`,
+        }).catch(() => {})
+      }
+    }
+
     try {
       const updatedTitle = (property?.title as string) || id
       void notifyAdmins(
-        'Property Updated',
-        `"${updatedTitle}" details or images have been updated.`,
-        'info'
+        formData.status === 'SOLD' ? '🏆 Property Marked as SOLD' : 'Property Updated',
+        `"${updatedTitle}" ${formData.status === 'SOLD' ? 'has been marked as SOLD.' : 'details or images have been updated.'}`,
+        formData.status === 'SOLD' ? 'success' : 'info'
       )
     } catch {
       // Ignore notification error

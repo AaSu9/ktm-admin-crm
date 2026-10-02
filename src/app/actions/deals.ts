@@ -222,7 +222,7 @@ export async function updateDealStatus(id: string, newStatus: string) {
 }
 
 /**
- * Handles automatic Property Sold state, Commission generation, and Agent Performance Points
+ * Handles automatic Property Sold state, Commission generation, and Agent Performance Points & Notifications
  */
 async function handlePropertySoldWorkflow(dealId: string, authUser: { userId: string; name: string; role: string }) {
   try {
@@ -241,13 +241,20 @@ async function handlePropertySoldWorkflow(dealId: string, authUser: { userId: st
 
     await logAudit({
       userId: authUser.userId,
+      userName: authUser.name,
+      userRole: authUser.role,
       action: 'MARK_PROPERTY_SOLD',
       entityType: 'PROPERTY',
       entityId: deal.propertyId,
       description: `Property "${deal.property.title}" marked as SOLD via Deal #${deal.id.slice(0, 8)}`,
     })
 
-    // 2. Check if Commission record already exists for this deal to prevent duplicates
+    // 2. Fetch performance setting for dynamic point & star calculation
+    const settings = await prisma.performanceSetting.findFirst()
+    const salePoints = settings?.saleClosePoints || 10
+    const starsBonus = Math.max(1, Math.floor(salePoints / 5))
+
+    // 3. Check if Commission record already exists for this deal to prevent duplicates
     const existingCommission = await prisma.commission.findFirst({
       where: { dealId: deal.id },
     })
@@ -272,28 +279,59 @@ async function handlePropertySoldWorkflow(dealId: string, authUser: { userId: st
 
       await logAudit({
         userId: authUser.userId,
+        userName: authUser.name,
+        userRole: authUser.role,
         action: 'GENERATE_COMMISSION',
         entityType: 'COMMISSION',
-        description: `Generated commission of NPR ${commissionAmount.toLocaleString()} (${deal.commissionRate}%) for agent ${deal.agent.name}`,
+        description: `Generated commission of NPR ${commissionAmount.toLocaleString()} (${deal.commissionRate}%) for agent ${deal.agent?.name || 'Agent'}`,
       })
-
-      // Notify Agent about Commission
-      createNotification({
-        userId: deal.agentId,
-        title: 'Commission Generated',
-        message: `Commission of NPR ${commissionAmount.toLocaleString()} generated for ${deal.title}`,
-        type: 'success',
-        link: '/deals',
-      }).catch(() => {})
     }
 
-    // 3. Award performance points to Agent for closed sale
-    await prisma.user.update({
+    // 4. Award performance points and stars to Agent for closed sale
+    const updatedAgent = await prisma.user.update({
       where: { id: deal.agentId },
       data: {
-        performancePoints: { increment: 10 },
+        performancePoints: { increment: salePoints },
+        stars: { increment: starsBonus },
       },
     })
+
+    // 5. Notify Agent with complete celebration and breakdown
+    await createNotification({
+      userId: deal.agentId,
+      title: '🎉 Property Sold & Commission Ready!',
+      message: `Deal "${deal.title}" for "${deal.property.title}" is marked SOLD! Generated commission: NPR ${commissionAmount.toLocaleString()} (Pending). You received +${salePoints} performance points & +${starsBonus} Star ⭐! Total Stars: ${updatedAgent.stars || 0}.`,
+      type: 'success',
+      link: '/deals',
+    }).catch(() => {})
+
+    // 6. Notify Admins & Super Admin
+    await notifyAdmins(
+      '🏆 Property Sale Closed!',
+      `Property "${deal.property.title}" was successfully marked SOLD by ${deal.agent?.name || 'Agent'}. Sale Price: NPR ${saleValue.toLocaleString()}. Commission: NPR ${commissionAmount.toLocaleString()} awaiting approval.`,
+      'success'
+    ).catch(() => {})
+
+    // 7. Update any other scheduled visits on this property to inform agents
+    const otherVisits = await prisma.visit.findMany({
+      where: {
+        propertyId: deal.propertyId,
+        status: { in: ['SCHEDULED', 'CONFIRMED'] },
+      },
+      include: { agent: true },
+    })
+
+    for (const v of otherVisits) {
+      if (v.agentId && v.agentId !== deal.agentId) {
+        await createNotification({
+          userId: v.agentId,
+          title: 'Property Notice: Property Sold',
+          message: `Notice: Property "${deal.property.title}" has been sold. Please review your scheduled appointment on ${new Date(v.date).toLocaleDateString()}.`,
+          type: 'warning',
+          link: '/visits',
+        }).catch(() => {})
+      }
+    }
   } catch (error) {
     console.error('Error executing Property Sold workflow:', error)
   }
