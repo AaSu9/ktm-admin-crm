@@ -18,16 +18,61 @@ export default async function AgentsPage() {
   let dbError = false
 
   try {
-    // Use _count instead of loading full relations — avoids loading hundreds of rows per agent
+    // Fetch agents with full property details, deals, leads, and visits
     agents = await prisma.user.findMany({
       where: { role: { in: ['AGENT', 'ADMIN', 'EDITOR'] } },
       include: {
         _count: {
-          select: { leads: true, properties: true, visits: true },
+          select: { leads: true, properties: true, visits: true, deals: true },
         },
-        leads: { select: { status: true }, take: 100 },
-        properties: { select: { id: true }, take: 50 },
-        visits: { select: { status: true }, take: 50 },
+        leads: {
+          select: { id: true, full_name: true, phone: true, email: true, status: true },
+          take: 100,
+        },
+        properties: {
+          select: {
+            id: true,
+            title: true,
+            location: true,
+            price: true,
+            status: true,
+            property_type: true,
+            category: true,
+            images: true,
+            leads: { select: { id: true, full_name: true, phone: true, email: true, status: true } },
+            visits: { select: { id: true, status: true, date: true, time: true, customer: { select: { name: true, phone: true } } } },
+          },
+          take: 100,
+        },
+        deals: {
+          where: { status: 'SOLD' },
+          include: {
+            property: {
+              select: {
+                id: true,
+                title: true,
+                location: true,
+                price: true,
+                status: true,
+                property_type: true,
+                category: true,
+                images: true,
+              },
+            },
+          },
+          take: 100,
+        },
+        visits: {
+          select: {
+            id: true,
+            status: true,
+            date: true,
+            time: true,
+            customer: { select: { name: true, phone: true } },
+            property: { select: { title: true } },
+          },
+          take: 100,
+        },
       },
       orderBy: { createdAt: 'desc' },
     })

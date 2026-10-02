@@ -32,6 +32,7 @@ interface Agent {
   leads: Record<string, unknown>[]
   properties: Record<string, unknown>[]
   visits: Record<string, unknown>[]
+  deals?: Record<string, unknown>[]
   avatar?: string | null
   designation?: string | null
   bio?: string | null
@@ -463,7 +464,21 @@ export function AgentsClient({ initialAgents }: { initialAgents: Agent[] }) {
           // Calculate aggregate stats including assigned properties
           const directLeads = agent.leads || []
           const directVisits = agent.visits || []
-          const properties = agent.properties || []
+          const directProperties = (agent.properties || []) as Record<string, unknown>[]
+          const dealProperties = (((agent as { deals?: { property?: Record<string, unknown> }[] }).deals || [])
+            .map((d) => d.property)
+            .filter(Boolean)) as Record<string, unknown>[]
+
+          const propertyMap = new Map<string, Record<string, unknown>>()
+          directProperties.forEach((p) => {
+            if (p?.id) propertyMap.set(p.id as string, p)
+          })
+          dealProperties.forEach((p) => {
+            if (p?.id && !propertyMap.has(p.id as string)) {
+              propertyMap.set(p.id as string, { ...p, status: 'SOLD' })
+            }
+          })
+          const properties = Array.from(propertyMap.values())
           
           const propertyLeads = properties.flatMap((p: Record<string, unknown>) => (p.leads as Record<string, unknown>[]) || [])
           const propertyVisits = properties.flatMap((p: Record<string, unknown>) => (p.visits as Record<string, unknown>[]) || [])

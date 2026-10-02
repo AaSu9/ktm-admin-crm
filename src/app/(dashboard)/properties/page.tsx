@@ -13,7 +13,7 @@ export const revalidate = 30
 export default async function PropertiesPage({
   searchParams: searchParamsPromise,
 }: {
-  searchParams: Promise<{ page?: string; search?: string; status?: string; category?: string; added?: string; updated?: string }>
+  searchParams: Promise<{ page?: string; search?: string; status?: string; category?: string; agentId?: string; added?: string; updated?: string }>
 }) {
   const searchParams = await searchParamsPromise
   const session = await auth()
@@ -37,9 +37,17 @@ export default async function PropertiesPage({
   }
   if (searchParams.status) where.status = searchParams.status
   if (searchParams.category) where.category = searchParams.category
+  if (searchParams.agentId) {
+    if (searchParams.agentId === 'unassigned') {
+      where.agentId = null
+    } else {
+      where.agentId = searchParams.agentId
+    }
+  }
 
   let properties: Record<string, unknown>[] = []
   let total = 0
+  let agents: { id: string; name: string }[] = []
 
   try {
     const results = await Promise.all([
@@ -68,9 +76,15 @@ export default async function PropertiesPage({
         },
       }),
       prisma.property.count({ where }),
+      prisma.user.findMany({
+        where: { role: { in: ['AGENT', 'ADMIN'] } },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      }),
     ])
     properties = results[0] as unknown as Record<string, unknown>[]
     total = results[1]
+    agents = results[2]
   } catch (error) {
     console.error("DB not connected", error)
   }
@@ -114,7 +128,7 @@ export default async function PropertiesPage({
 
       {/* Filters */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-wrap gap-3">
-        <form className="flex flex-wrap gap-3 w-full">
+        <form className="flex flex-wrap gap-3 w-full items-center">
           <div className="relative flex-1 min-w-50">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input name="search" defaultValue={searchParams.search} placeholder="Search properties..."
@@ -133,6 +147,16 @@ export default async function PropertiesPage({
             <option value="">All Categories</option>
             <option value="sale">Sale</option>
             <option value="rent">Rent</option>
+          </select>
+          <select name="agentId" defaultValue={searchParams.agentId || ''}
+            className="border border-gray-200 rounded-xl text-sm px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="">All Agents</option>
+            {agents.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+            <option value="unassigned">Unassigned</option>
           </select>
           <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">
             Filter

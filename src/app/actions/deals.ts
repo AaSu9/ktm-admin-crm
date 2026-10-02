@@ -120,6 +120,14 @@ export async function createDeal(input: CreateDealInput) {
       },
     })
 
+    // Link property to agent if not already assigned or if this agent is closing the deal
+    if (property && (!property.agentId || property.agentId !== assignedAgentId)) {
+      await prisma.property.update({
+        where: { id: input.propertyId },
+        data: { agentId: assignedAgentId },
+      }).catch(() => {})
+    }
+
     // Log Audit
     await logAudit({
       userId: authUser.userId,
@@ -233,10 +241,13 @@ async function handlePropertySoldWorkflow(dealId: string, authUser: { userId: st
 
     if (!deal) return
 
-    // 1. Update Property Status to SOLD
+    // 1. Update Property Status to SOLD and ensure agent is assigned
     await prisma.property.update({
       where: { id: deal.propertyId },
-      data: { status: 'SOLD' },
+      data: {
+        status: 'SOLD',
+        agentId: deal.agentId,
+      },
     })
 
     await logAudit({
